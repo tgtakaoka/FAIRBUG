@@ -2,7 +2,7 @@
 *R.VATERT             J.EFSTATHIOU
 *FOR 2K PSU
 *9/28/77
-XX       RORG      H'8000'
+XX       ORG       H'8000'
 A        EQU       (A1-1)
 HIBY     EQU       H'82'     ; HI 8 BIT ADD
 LOBY     EQU       H'B9'     ; LO 8 BIT ADD
@@ -397,6 +397,7 @@ COR7     LR       FCNT,A
          BR       RTN
 *ROUTINE TO FETCH DIRECTIVE,THEN CALL PARAME
 *   THEN GO TO CORRECT PROCESS ROUTINE THRU
+AL1      function addr, addr & H'FF'
 TBLS     DC     AL1(A1-A)    ; ACCUMULATOR DIS
          DC     AL1(B-A)     ; BINARY DUMP
          DC     AL1(C-A)     ; CHANGE FIELD

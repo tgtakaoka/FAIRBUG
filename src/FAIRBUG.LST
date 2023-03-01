@@ -1,0 +1,1714 @@
+          0 :                    *FAIRBUG       +      EDUCATOR
+          0 :                    *R.VATERT             J.EFSTATHIOU
+          0 :                    *FOR 2K PSU
+          0 :                    *9/28/77
+       8000 :                    XX       ORG       H'8000'
+       8000 : =82B9              A        EQU       (A1-1)
+       8000 : =82                HIBY     EQU       H'82'     ; HI 8 BIT ADD
+       8000 : =B9                LOBY     EQU       H'B9'     ; LO 8 BIT ADD
+       8000 : =0                 BAUD     EQU       0
+       8000 : =1                 CHRS     EQU       1
+       8000 : =2                 BCNT     EQU       2
+       8000 : =3                 TEMP     EQU       3
+       8000 : =8                 HFLG     EQU       8
+       8000 : =5                 CCNT     EQU       5
+       8000 : =6                 XFLG     EQU       6
+       8000 : =6                 SAVE     EQU       XFLG
+       8000 : =7                 CKSM     EQU       7
+       8000 : =8                 FCNT     EQU       8
+       8000 : =9                 FLG      EQU       9
+       8000 : =7                 SIZE     EQU       CKSM
+       8000 : =3                 SA       EQU       3
+       8000 : =5                 EA       EQU       5
+       8000 : =6                 EALO     EQU       XFLG
+       8000 : =5                 EAHI     EQU       CCNT
+       8000 : =3EB               MLO      EQU       H'3EB'    ; END RAM 0-1K
+       8000 : =BEB               MHI      EQU       H'BEB'    ; END RAM 3-4K
+       8000 : =C                 OO       EQU       12        ; IO DISPLAY PORT
+       8000 : =D                 PP       EQU       13
+       8000 : =F                 RR       EQU       15        ; FLG+H'43'=REGIS
+       8000 : =A                 MM       EQU       10        ; FLG+H'43'=MEMOR
+       8000 : =F8                HI       EQU       H'F8'
+       8000 : =B                 CC       EQU       11
+       8000 : =B                 CHR1     EQU       11
+       8000 : =D                 CR       EQU       H'0D'
+       8000 : =A                 LF       EQU       H'0A'
+       8000 : =B                 NUSE     EQU       H'0B'     ; UNUSED PORT ADD
+       8000 : =8                 OPOR     EQU       8         ; SERIAL PORT,OUT
+       8000 : =8                 IPOR     EQU       8         ; SERIAL PORT,INP
+       8000 : =8                 PSTS     EQU       8         ; PARALLEL PORT,S
+       8000 : =9                 PPRT     EQU       9         ; PARALLEL PORT,D
+       8000 :                    *LOOP TO SAVE R0-R15 IN MEMORY
+       8000 : 70                 BGL1     LIS       0
+       8001 : 0B                 BGLP     LR        IS,A
+       8002 : 4C                          LR        A,S
+       8003 : 17                          ST
+       8004 : 0A                          LR        A,IS
+       8005 : 1F                          INC
+       8006 : 25 10                       CI        16
+       8008 : 94 F8                       BNZ       BGLP      ; NOT 16,NOT DONE
+       800A : 16                          LM                  ; BAUD
+       800B : 50                          LR        BAUD,A    ; SET TEMP AT LEA
+       800C : 20 E7                       LI        -25
+       800E : 8E                          ADC                 ; SET DC
+       800F : 08                          LR        K,P       ; PC TO R12-13
+       8010 : 00                          LR        A,KU
+       8011 : 17                          ST                  ; SAVE PC HI
+       8012 : 01                          LR        A,KL
+       8013 : 17                          ST                  ; SAVE PC LO
+       8014 : 71                          LIS       1
+       8015 : B8                          OUTS      OPOR      ; MARK BIT TO STA
+       8016 : A8                          INS       IPOR
+       8017 : 21 20                       NI        H'20'
+       8019 : 94 19                       BNZ       EDUL
+       801B : 0E                          LR        Q,DC      ; QU WILL NOW HAV
+       801C : A8                          INS       IPOR      ; GET BAUD OPTION
+       801D : 18                          COM
+       801E : 21 06                       NI        6
+       8020 : 12                          SR        1
+       8021 : 84 0A                       BZ        BGND
+       8023 : 2A 80 2F                    DCI       (TBX-1)
+       8026 : 8E                          ADC
+       8027 : 16                          LM
+       8028 : 50                          LR        BAUD,A    ; BAUD = TABLE VA
+       8029 : 28 85 60                    PI        TTD       ; DELAY FOR KEY BD
+       802C : 29 81 D1           BGND     JMP       STRT      ; TO CONVERSATIONA
+       802F : 2B                          NOP
+       8030 :                    *
+       8030 : EA                 TBX      DC        H'EA'     ; 1200 BAUD
+       8031 : A4                          DC        H'A4'     ; 300 BAUD
+       8032 : 06                          DC        6         ; 110 BAUD
+       8033 : 29 85 AD           EDUL     JMP       (EDUX+2)
+       8036 :                    *BOOTSTRAP FORMAT PUNCH SUBROUTINE
+       8036 :                    *   START ADDRESS IN DC ON ENTRY
+       8036 :                    *   END ADDRESS IN R6-7 ON ENTRY
+       8036 :                    *WRITE BLANK LEADER
+       8036 : 45                 FPUN     LR        A,EAHI
+       8037 : 18                          COM
+       8038 : 55                          LR        EAHI,A    ; NOW 1'S COMPLIM
+       8039 : 46                          LR        A,EALO
+       803A : 18                          COM                 ; NEGATIVE
+       803B : 1F                          INC                 ; 2'S COMPLIMENT
+       803C : 56                          LR        EALO,A
+       803D : 45                          LR        A,EAHI
+       803E : 19                          LNK
+       803F : 55                          LR        EAHI,A    ; NOW 2'S COMPLIM
+       8040 : 20 92                       LI        H'92'     ; NUMBER OF NULLS
+       8042 : 57                          LR        CKSM,A
+       8043 : 90 02                       BR        (FPN1+1)
+       8045 : 70                 FPN1     LIS       0
+       8046 : 51                          LR        CHRS,A
+       8047 : 28 85 93                    PI        TTYO      ; WRITE BLANKS
+       804A : 37                          DS        CKSM
+       804B : 94 F9                       BNZ       FPN1      ; CONTINUE BKANKI
+       804D : E8                          XS        HFLG
+       804E : 81 09                       BP        FCON      ; THIS WAS LEADER
+       8050 :                    *TRAILER PUNCHED NOW FINISH
+       8050 : 20 94                       LI        H'94'
+       8052 : 51                          LR        CHRS,A
+       8053 : 28 85 93                    PI        TTYO
+       8056 : 90 57                       BR        BGSV
+       8058 :                    *
+       8058 :                    *WRITE STARTING ADDRESS
+       8058 : 20 FF              FCON     LI        H'FF'
+       805A : 51                          LR        CHRS,A
+       805B : 28 85 93                    PI        TTYO
+       805E : 20 3A                       LI        H'3A'     ; COLON FORMULATO
+       8060 : 51                          LR        CHRS,A
+       8061 : 28 85 93                    PI        TTYO
+       8064 : 20 18                       LI        24        ; LENGTH=24
+       8066 : 58                          LR        HFLG,A
+       8067 : 07                          LR        QL,A      ; OUTPUT BYTE
+       8068 : 28 81 1D                    PI        FOP2      ; WRITE LENGTH
+       806B : 4A                          LR        A,10
+       806C : 07                          LR        QL,A
+       806D : 28 81 1D                    PI        FOP2      ; OUTPUT HI ADDRE
+       8070 : 4B                          LR        A,11
+       8071 : 07                          LR        QL,A
+       8072 : 28 81 1D                    PI        FOP2      ; OUTPUT LO ADDRE
+       8075 : 70                          LIS       0
+       8076 : 07                          LR        QL,A      ; RECORD TYPE=0
+       8077 : 28 81 1D                    PI        FOP2
+       807A : 10                          LR        DC,H
+       807B : 20 18                       LI        24
+       807D : 58                          LR        HFLG,A    ; SET TO 24
+       807E : 90 03                       BR        FLOP
+       8080 :                    ****************
+       8080 : 90 2D                       BR        BGSV      ; START FAIRBUG
+       8082 :                    ****************
+       8082 : 28 81 1B           FLOP     PI        FOP1      ; WRITE 2 CHR FR
+       8085 : 11                          LR        H,DC
+       8086 : 38                          DS        HFLG      ; COUNT-1
+       8087 : 94 FA                       BNZ       FLOP      ; NOT 24 YET
+       8089 :                    *NOW CHECKSUM
+       8089 : 47                          LR        A,CKSM
+       808A : 18                          COM
+       808B : 1F                          INC
+       808C : 07                          LR        QL,A
+       808D : 78                          LIS       8
+       808E : 58                          LR        HFLG,A    ; FLAG PLUS FOR 2
+       808F : 28 81 1D                    PI        FOP2      ; WRITE 2 CHAR CK
+       8092 : 28 85 78                    PI        TTCR      ; TYPE CR/LF
+       8095 :                    *NOW CHECK IF ALL MEMORY IS PUNCHED,HI MUST
+       8095 : 4B                          LR        A,11      ; LAST LOW ADDRES
+       8096 : C6                          AS        EALO      ; ENDING LOW ADDR
+       8097 : 4A                          LR        A,10      ; LAST HI ADDRESS
+       8098 : 19                          LNK
+       8099 : C5                          AS        EAHI
+       809A : 92 BD                       BNC       FCON      ; NOT DONE YET
+       809C : 07                          LR        QL,A      ; ZERO
+       809D :                    *
+       809D :                    *NOW WROTE ZERO RECORD PRIOR TO TRAILER
+       809D :                    *
+       809D : 20 3A                       LI        H'3A'     ; COLON
+       809F : 51                          LR        CHRS,A
+       80A0 : 28 85 93                    PI        TTYO      ; PUNCH VCOLON
+       80A3 : 78                          LIS       8
+       80A4 : 58                          LR        HFLG,A
+       80A5 : 28 81 1D           HERE     PI        FOP2      ; PUNCH 2 ZERO CHAR
+       80A8 : 38                          DS        HFLG
+       80A9 : 94 FB                       BNZ       HERE      ; REPEAT IF NOT 0
+       80AB : 38                          DS        HFLG      ; SET TO -1
+       80AC : 90 8B                       BR        (FPUN+2)  ; TRAILER
+       80AE :                    *TABLE OF DEFAULT DELAY COUNTERS
+       80AE :                    *SAVE ROUTINE   TO SAVE THE INITIAL STATE OF
+       80AE :                    *     RESTORE SUBROUTINE WILL PUT IT BACK
+       80AE : 1A                 BGSV     DI                  ; DISABLE INTERRU
+       80AF : 58                          LR        8,A       ; A SAVED IN R8
+       80B0 : 0A                          LR        A,IS      ; ISAR TO A
+       80B1 : 67                          LISU      7
+       80B2 : 6C                          LISL      4
+       80B3 : 5D                          LR        I,A       ; ISAR TO R74
+       80B4 : 49                          LR        A,9
+       80B5 : 5D                          LR        I,A       ; R9 TO R75
+       80B6 : 1E                          LR        J,W       ; STATUS TO R9
+       80B7 : 4A                          LR        A,10
+       80B8 : 5D                          LR        I,A       ; R10 TO R76
+       80B9 : 4B                          LR        A,11
+       80BA : 5C                          LR        S,A       ; R11 TO R77
+       80BB : 11                          LR        H,DC      ; DC TO R 10-11
+       80BC :                    *CHECK ADDRESS OF SCRATCH RAM
+       80BC : 2A 0B EB                    DCI       MHI
+       80BF : 16                          LM
+       80C0 : 18                          COM
+       80C1 : 2A 0B EB                    DCI       MHI
+       80C4 : 17                          ST                  ; WRITE COMPLEMEN
+       80C5 : 2A 0B EB                    DCI       MHI
+       80C8 : 8C                          XM                  ; XOR SHOULD BE Z
+       80C9 : 2A 0B EB                    DCI       MHI
+       80CC : 84 04                       BZ        BG1       ; IF ZERO SCRATCH
+       80CE : 2A 03 EB                    DCI       MLO       ; NOT 4K CRATCH M
+       80D1 : 4A                 BG1      LR        A,10
+       80D2 : 17                          ST
+       80D3 : 4B                          LR        A,11
+       80D4 : 17                          ST                  ; DC NOW IN RAM
+       80D5 : 2C                          XDC
+       80D6 : 11                          LR        H,DC      ; DC1
+       80D7 : 2C                          XDC
+       80D8 : 4A                          LR        A,10
+       80D9 : 17                          ST                  ; DC1 UPPER
+       80DA : 4B                          LR        A,11
+       80DB : 17                          ST                  ; DC1 LOWER
+       80DC : 4E                          LR        A,D
+       80DD : 5B                          LR        11,A      ; RESTORE R11
+       80DE : 4C                          LR        A,S
+       80DF : 5A                          LR        10,A      ; RESTIRE 10
+       80E0 : 49                          LR        A,9
+       80E1 : 5E                          LR        D,A       ; STATUS TO R76
+       80E2 : 4C                          LR        A,S
+       80E3 : 59                          LR        9,A
+       80E4 : 29 80 00                    JMP       BGL1      ; TO FINISH SAVE
+       80E7 :                    * RESTIRE ROUTINE    RESET REGISTERS THEN RE
+       80E7 : 20 E7              REST     LI        H'E7'
+       80E9 : 07                          LR        QL,A
+       80EA : 0F                          LR        DC,Q      ; SET DC TO RESTO
+       80EB : 16                          LM
+       80EC : 04                          LR        KU,A
+       80ED : 16                          LM
+       80EE : 05                          LR        KL,A
+       80EF : 09                          LR        P,K       ; 12-13 TO PC1
+       80F0 : 16                          LM                  ; SKIP MEM
+       80F1 : 16                          LM                  ; SKIP AGAIN
+       80F2 : 16                          LM
+       80F3 : 06                          LR        QU,A      ; DC TO R14
+       80F4 : 16                          LM
+       80F5 : 07                          LR        QL,A      ; DC TO R15
+       80F6 : 2C                          XDC
+       80F7 : 0F                          LR        DC,Q      ; DC0 RESTORE
+       80F8 : 2C                          XDC
+       80F9 : 16                          LM
+       80FA : 06                          LR        QU,A
+       80FB : 16                          LM
+       80FC : 07                          LR        QL,A      ; DC1 NOW IN Q
+       80FD : 70                          LIS       0
+       80FE :                    *LOOP TO RESTORE R0-R13 FROM SCRATCH RAM
+       80FE : 0B                 LOUP     LR        IS,A
+       80FF : 16                          LM
+       8100 : 5C                          LR        S,A       ; R0-R13 RESTORE
+       8101 : 0A                          LR        A,IS
+       8102 : 1F                          INC
+       8103 : 25 0E                       CI        14
+       8105 : 94 F8                       BNZ       LOUP      ; NOT DONE YET
+       8107 : 67                          LISU      7
+       8108 : 49                          LR        A,9
+       8109 : 5D                          LR        I,A
+       810A : 16                          LM
+       810B : 59                          LR        9,A       ; R14 TO R9
+       810C : 16                          LM
+       810D : 0F                          LR        DC,Q      ; RESTORE DC
+       810E : 2C                          XDC                 ; DC1 FROM DC0 TO
+       810F : 07                          LR        QL,A
+       8110 : 49                          LR        A,9       ; RESTORE R14-15
+       8111 : 06                          LR        QU,A
+       8112 :                    *NOW DO SR,ISAR,9,A
+       8112 : 4E                          LR        A,D       ; GET STATUS
+       8113 : 59                          LR        9,A       ; SR TO J
+       8114 : 1D                          LR        W,J       ; STATUS RESTORED
+       8115 : 4E                          LR        A,D       ; GET R9
+       8116 : 59                          LR        9,A       ; R9 RESTORED
+       8117 : 4E                          LR        A,D       ; GET ISAR
+       8118 : 0B                          LR        IS,A      ; ISAR RESTORED
+       8119 : 48                          LR        A,8       ; RESTORE A
+       811A : 1C                          POP                 ; TO USER
+       811B :                    *SUBROUTINE TO OUTBYTE 1 BYTE AS 2  4 BIT AS
+       811B :                    *CKSM IS ACCUMLATED
+       811B :                    *HFLG MUST BE POSITIVE NUMBER
+       811B : 16                 FOP1     LM
+       811C : 07                          LR        QL,A
+       811D :                    *ENTRY WITH CHARACTER IN REG SAVE
+       811D : 08                 FOP2     LR        K,P       ; SAVE
+       811E : 48                 FLP1     LR        A,HFLG
+       811F : 18                          COM                 ; SET STATUS
+       8120 : 58                          LR        HFLG,A
+       8121 : 03                          LR        A,QL
+       8122 : 91 02                       BM        FHI       ; DO HI 4 BITS IF
+       8124 : 15                 FLO      SL        4         ; LOSE HI BITS
+       8125 : 14                 FHI      SR        4         ; MOVE TO LO 4 BI
+       8126 :                    *CONVERT TO ASC 0='30',9='39',A='41',F='46'
+       8126 : 24 30                       AI        H'30'
+       8128 : 25 39                       CI        H'39'
+       812A : 81 03                       BP        FINT      ; NOT A-F
+       812C : 24 07                       AI        7
+       812E : 51                 FINT     LR        CHRS,A
+       812F : 28 85 93                    PI        TTYO      ; TYPE FRAME
+       8132 : 38                          DS        HFLG
+       8133 : 91 EA                       BM        FLP1      ; DO LOW HALF WOR
+       8135 :                    *DO CHECKSUM
+       8135 : 03                          LR        A,QL      ; LAST BYTE OUTPU
+       8136 : C7                          AS        CKSM      ; ADD TO PROIR CK
+       8137 : 57                          LR        CKSM,A    ; SAVE UPDATED CK
+       8138 : 0C                          PK                  ; RETURN FROM K R
+       8139 :                    *FETCH PARAMETERS AFTER LEGIT CODE IS IN
+       8139 :                    *MAX FIELD 1 AND 2 IS 4 HEX DIGITS
+       8139 :                    *MAX FIELD 3 IS 1 HEX DIGIT
+       8139 : 73                 FECH     LIS       3
+       813A : 58                          LR        FCNT,A    ; PARAMETER COUNT
+       813B : 0B                          LR        IS,A      ; ISAR=3
+       813C : 74                 FA       LIS       4
+       813D : 5B                          LR        CC,A      ; CHAR CNT=4
+       813E :                    *READ CHARACTER
+       813E : 28 85 53           FB       PI        TTYI      ; GET CHAR
+       8141 : 21 7F                       NI        H'7F'
+       8143 : 57                          LR        7,A
+       8144 : 25 0D                       CI        CR
+       8146 : 84 3E                       BZ        CORE      ; CORRECT FIELD B
+       8148 : 28 85 93                    PI        TTYO      ; ECHO INPUT CHAR
+       814B : 47                          LR        A,7
+       814C : 25 2D                       CI        C'-'      ; FIELD SEPARATOR
+       814E : 84 33                       BZ        CORN
+       8150 : 25 2B                       CI        C'+'
+       8152 : 84 2F                       BZ        CORN
+       8154 : 25 3D                       CI        C'='
+       8156 : 84 30                       BZ        CORT
+       8158 : 25 5B                       CI        H'5B'     ; KILL CHAR?
+       815A : 84 78                       BZ        STR1      ; KILL INPUT
+       815C :                    *MUST BE HEX 0-9, OR A-F
+       815C : 25 2F                       CI        H'2F'     ; LESS THAN ZERO
+       815E : 81 DF                       BP        FB        ; ERROR IGNORE
+       8160 : 25 46                       CI        H'46'     ; F?
+       8162 : 91 DB                       BM        FB        ; ERROR IGNORE
+       8164 : 24 D0                       AI        H'D0'
+       8166 : 25 09                       CI        H'9'
+       8168 : 81 07                       BP        FOK
+       816A : 25 10                       CI        H'10'
+       816C : 81 D1                       BP        FB        ; ERROT,IGNORE IT
+       816E : 24 F9                       AI        H'F9'
+       8170 : 3B                 FOK      DS        CC
+       8171 : 91 CC                       BM        FB        ; FULL FIELD IGNO
+       8173 :                    *ZERO LO 4 BITS,THEN ADD THIS DIGIT
+       8173 : 52                          LR        2,A
+       8174 : 4C                          LR        A,S
+       8175 : 15                          SL        4
+       8176 : C2                          AS        2
+       8177 : 5D                          LR        I,A       ; TO PARAMETER LO
+       8178 : 71                          LIS       1
+       8179 : FB                          NS        CC
+       817A : 84 C3                       BZ        FB        ; EVEN CHAR,2 IG
+       817C : 4E                          LR        A,D       ; SET ISAR BACK 1
+       817D : 8F C0                       BR7       FB        ; GET NEXT DIGIT
+       817F : 73                          LIS       3
+       8180 : 90 35                       BR        COR7      ; PARAMETERS FULL
+       8182 : 59                 CORN     LR        9,A
+       8183 : 90 03                       BR        CORT
+       8185 :                    *CORRECT HEX FIELD ,RIGHT JUSTIFY
+       8185 :                    *   IF AB0C THEN 0ABC
+       8185 :                    *IF ABCD THEN IT IS OK
+       8185 :                    *   IF A00 THEN 000A
+       8185 :                    *IF   AB00 THEN 00AB
+       8185 : 7D                 CORE     LIS       H'D'
+       8186 : 57                          LR        7,A
+       8187 : 74                 CORT     LIS       4
+       8188 : EB                          XS       CC
+       8189 : 84 1F                       BZ       COR6       ; NO PARAMETERS
+       818B : 3B                          DS       CC
+       818C : 91 1B                       BM       COR5       ; FIELD ABCD,AOK
+       818E : 94 0C                       BNZ      COR1
+       8190 : 7F                          LIS      15
+       8191 : FC                          NS       S
+       8192 : 5E                          LR       D,A
+       8193 : 4D                          LR       A,I
+       8194 : 15                          SL       4
+       8195 : EC                          XS       S
+       8196 : 5E                          LR       D,A
+       8197 : 4C                          LR       A,S
+       8198 : 14                          SR       4
+       8199 : 90 0C                       BR       COR4
+       819B : 3B                 COR1     DS       CC
+       819C : 84 05                       BZ       COR2
+       819E : 7F                          LIS      15
+       819F : FD                          NS       I
+       81A0 : 90 03                       BR       COR3
+       81A2 : 4E                 COR2     LR       A,D
+       81A3 : 4D                          LR       A,I
+       81A4 : 5E                 COR3     LR       D,A
+       81A5 : 70                          LIS      0
+       81A6 : 5D                 COR4     LR       I,A
+       81A7 : 4D                          LR       A,I
+       81A8 : 38                 COR5     DS       FCNT
+       81A9 : 47                 COR6     LR       A,7
+       81AA : 25 0D                       CI       CR
+       81AC : 84 05                       BZ       COR8
+       81AE : 25 3D                       CI       C'='
+       81B0 : 94 8B                       BNZ      FA         ; LAST CHAR NOT C
+       81B2 : 48                 COR8     LR       A,FCNT
+       81B3 : 18                          COM
+       81B4 : 24 04                       AI       4
+       81B6 : 58                 COR7     LR       FCNT,A
+       81B7 : 90 44                       BR       RTN
+       81B9 :                    *ROUTINE TO FETCH DIRECTIVE,THEN CALL PARAME
+       81B9 :                    *   THEN GO TO CORRECT PROCESS ROUTINE THRU
+       81B9 :                    AL1      function addr, addr & H'FF'
+       81B9 : 01                 TBLS     DC     AL1(A1-A)    ; ACCUMULATOR DIS
+       81BA : 9E                          DC     AL1(B-A)     ; BINARY DUMP
+       81BB : 06                          DC     AL1(C-A)     ; CHANGE FIELD
+       81BC : 42                          DC     AL1(D-A)     ; DC DISPLAY
+       81BD : 47                          DC     AL1(E-A)     ; EXAMINE
+       81BE : 4D                          DC     AL1(F-A)     ; FORMATTED PUNCH
+       81BF : 50                          DC     AL1(G-A)     ; GO TO
+       81C0 : 6A                          DC     AL1(H-A)     ; HIGH SPEED LOAD
+       81C1 : 5F                          DC     AL1(I-A)     ; ISAR DISPLAY
+       81C2 : A2                          DC     AL1(J-A)     ; 8 BIT PROM PUNC
+       81C3 : FF                          DC     AL1(-1)      ; K
+       81C4 : 70                          DC     AL1(L-A)     ; LOAD
+       81C5 : 73                          DC     AL1(M-A)     ; MEMORY DISPLAY
+       81C6 : 76                          DC     AL1(N-A)     ; NEXT DISPLAY
+       81C7 : 6D                          DC     AL1(O-A)     ; PORT DISPLAY
+       81C8 : 82                          DC     AL1(P-A)     ; PC DISPLAY
+       81C9 : FF                          DC     AL1(-1)      ; Q
+       81CA : A8                          DC     AL1(R-A)     ; REGISTER DISPLA
+       81CB : 9A                          DC     AL1(S-A)     ; STATUS DISPLAY
+       81CC : 04                          DC     AL1(T-A)     ; CLEAR BREAK POI
+       81CD : A5                          DC     AL1(U-A)     ; BREAKPOINT
+       81CE : FC                          DC     AL1(V-A)     ; MOVE BLOCK
+       81CF : 9A                          DC     AL1(S-A)     ; W (STATUS) DISP
+       81D0 : 02                 HXX      DC     AL1(X-A)     ; HEX ARITHMETIC
+       81D1 : 4B                 STRT     LR        A,11      ; FREE R11
+       81D2 : 07                          LR        QL,A
+       81D3 : 28 85 78           STR1     PI        TTCR      ; WRITE CR/LF
+       81D6 : 20 3F                       LI        C'?'      ; PROMPT CHARACTE
+       81D8 : 51                          LR        CHRS,A
+       81D9 : 28 85 93                    PI        TTYO
+       81DC :                    *READ INPUT CHARACTER
+       81DC : 28 85 53           READ     PI        TTYI
+       81DF : 53                          LR        3,A       ; SAVE CHAR
+       81E0 : 28 85 93                    PI        TTYO      ; ECHO CHAR
+       81E3 : 43                          LR        A,3
+       81E4 : 21 7F                       NI        H'7F'     ; 7 BITS ONLY
+       81E6 : 25 40                       CI        H'40'
+       81E8 : 81 EA                       BP        STR1      ; LESS THAN 'A' I
+       81EA : 25 58                       CI        C'X'
+       81EC : 91 E6                       BM        STR1      ; GREATER THAN 'W
+       81EE : 21 1F                       NI        H'1F'     ; SAVE 5 BITS ONL
+       81F0 : 2A 81 B8                    DCI       (TBLS-1)
+       81F3 : 8E                          ADC
+       81F4 : 16                          LM                  ; GET TABLE VALUE
+       81F5 : 05                 RPTC     LR        KL,A      ; SAVE INDEX IN R
+       81F6 : 1F                          INC                 ; GET STATUS
+       81F7 : 84 DB                       BZ        STR1      ; INVALID CONTROL
+       81F9 :                    *NOW INPUT PARAMETERS IF ANY
+       81F9 : 29 81 39                    JMP       FECH
+       81FC : 03                 RTN      LR        A,QL
+       81FD : 5B                          LR        11,A      ; RESTORE R11
+       81FE :                    *TEST FOR 2 OR 3 PARAMETERS
+       81FE :                    *   MAKE LO ADDRESS START ON 8 BYTE BOUNDRY
+       81FE :                    *  MAKE HI ADDRESS END ON 8 BYTE BOUNDRY
+       81FE : 72                          LIS       2
+       81FF : F8                          NS        FCNT
+       8200 : 84 18                       BZ        RTN1      ; NOT 2 OR 3 PARA
+       8202 : 01                          LR        A,KL
+       8203 : 25 02                       CI        (X-A)
+       8205 : 94 04                       BNZ       NHX
+       8207 : 29 82 9A                    JMP       HEX
+       820A : 25 FC              NHX      CI        (V-A)
+       820C : 84 17                       BZ        MOVE
+       820E : 46                          LR        A,6
+       820F : 22 07                       OI        7
+       8211 : 56                          LR        6,A
+       8212 : 20 F8                       LI        H'F8'
+       8214 : F4                          NS        4
+       8215 : 54                          LR        4,A
+       8216 : 5B                          LR        11,A
+       8217 : 43                          LR        A,3
+       8218 : 5A                          LR        10,A
+       8219 :                    *CALC ADDRESS TO GET TO PROCESS ROUTINE
+       8219 : 01                 RTN1     LR        A,KL
+       821A : 24 B9                       AI        LOBY      ; LO 8 BIT ADDRES
+       821C : 05                          LR        KL,A
+       821D : 20 82                       LI        HIBY      ; HI 8 BIT ADDRES
+       821F : 19                          LNK
+       8220 : 04                          LR        KU,A
+       8221 : 09                          LR        P,K
+       8222 : 02                          LR        A,QU      ; HI ADDRESS IF N
+       8223 : 1C                          POP
+       8224 :                    *MOVE MEMORY BLOCK
+       8224 :                    *  TO ACCOMPLISH,DO  MXXXX WHERE XXXX IS DE
+       8224 :                    *                    VSSSS-EEEE WHERE SSSS I
+       8224 :                    *              AND EEEE IS SOURCE ENDING ADD
+       8224 :                    *INPUT
+       8224 :                    *  R10-11  =DESTINATION START ADDRESS
+       8224 :                    *  R3-4     =SOURCE START ADDDRESS
+       8224 :                    *  R5-6    =SOURCE END ADDRESS
+       8224 :                    *WORK REGISTERS
+       8224 :                    *  R10-11   =CURRENT SOURCE BYTE ADDRESS
+       8224 :                    *  R5-6     =SOURCE START IF MOVING FROM END
+       8224 :                    *           =SOURCE END ADDRESS IF MOVE STAR
+       8224 : 4A                 MOVE     LR        A,10      ; DESTINATION HI
+       8225 : 18                          COM
+       8226 : 1F                          INC
+       8227 : C3                          AS        3         ; SOURCE START HI
+       8228 : 84 0B                       BZ        MBY2      ; EQUAL,TEST LO B
+       822A : 91 0F                       BM        MEND      ; MOVE BACKWARD
+       822C : 10                 MBGN     LR        DC,H
+       822D : 43                          LR        A,3
+       822E : 5A                          LR        10,A
+       822F : 44                          LR        A,4
+       8230 : 5B                          LR        11,A
+       8231 : 70                          LIS       0
+       8232 : 90 26                       BR        MCOM
+       8234 : 4B                 MBY2     LR        A,11
+       8235 : 18                          COM
+       8236 : 1F                          INC
+       8237 : C4                          AS        4
+       8238 : 81 F3                       BP        MBGN
+       823A :                    *CALC LENGTH OF BLOCK
+       823A : 43                 MEND     LR        A,3
+       823B : 18                          COM
+       823C : 51                          LR        1,A
+       823D : 44                          LR        A,4
+       823E : 18                          COM
+       823F : 1F                          INC
+       8240 : 1E                          LR        J,W
+       8241 : C6                          AS        6
+       8242 : 92 02                       BNC       MXX
+       8244 : 1E                          LR        J,W
+       8245 : CB                 MXX      AS        11
+       8246 : 5B                          LR        11,A
+       8247 : 41                          LR        A,1
+       8248 : 19                          LNK
+       8249 : 1D                          LR        W,J
+       824A : 19                          LNK
+       824B : C5                          AS        5
+       824C : CA                          AS        10
+       824D : 5A                          LR        10,A
+       824E :                    *MOVE TO DC THEN IMCREMENT TO ADD 1 TO LENG
+       824E : 10                          LR        DC,H
+       824F :                    *MOVE SOURCE START ADDRESS TO R10-11
+       824F : 45                          LR        A,5
+       8250 : 5A                          LR        10,A
+       8251 : 46                          LR        A,6
+       8252 : 5B                          LR        11,A
+       8253 :                    *NOW MOVE SOURCE START TO R5-6 FOR END COMPA
+       8253 : 43                          LR        A,3
+       8254 : 55                          LR        5,A
+       8255 : 44                          LR        A,4
+       8256 : 56                          LR        6,A
+       8257 : 20 FE                       LI        -2        ; MEMORY ADDRESS
+       8259 : 57                 MCOM     LR        7,A
+       825A : 2C                          XDC
+       825B : 10                          LR        DC,H
+       825C : 11                 MLOP     LR        H,DC      ; SAVE ADDRESS FO
+       825D : 16                          LM
+       825E : 2C                          XDC
+       825F : 17                          ST
+       8260 : 47                          LR        A,7
+       8261 : 8E                          ADC
+       8262 : 2C                          XDC
+       8263 : 8E                          ADC
+       8264 :                    *COMPARE FOR ADDRESS END
+       8264 : 4A                          LR        A,10
+       8265 : E5                          XS        5
+       8266 : 94 F5                       BNZ       MLOP
+       8268 : 4B                          LR        A,11
+       8269 : E6                          XS        6
+       826A : 94 F1                       BNZ       MLOP
+       826C : 29 81 D1           BXX      JMP       STRT      ; ALL DONE
+       826F :                    *BREAKPOINT----STORE PK IN USER MEMORY +CHAN
+       826F :                    *              ADDTRSS IN FAIRBUG
+       826F :                    *GET BYTE FROM MEMORY AND SAVE ADDRESS AND
+       826F : 20 E0              BRAK     LI        H'E0'     ; SCRATCH MEM LO
+       8271 : 07                          LR        QL,A
+       8272 : 0F                          LR        DC,Q
+       8273 : 43                          LR        A,3
+       8274 : 5A                          LR        10,A
+       8275 : 17                          ST
+       8276 : 44                          LR        A,4
+       8277 : 5B                          LR        11,A
+       8278 : 17                          ST
+       8279 :                    *NOW FETCH USER BYTE
+       8279 : 2C                          XDC
+       827A : 10                          LR        DC,H
+       827B : 16                          LM
+       827C : 2C                          XDC
+       827D : 17                          ST
+       827E :                    *NOW STORE PK IN MEMORY
+       827E : 10                          LR        DC,H
+       827F : 7C                          LIS       12
+       8280 : 17                          ST
+       8281 :                    *NOW CHANGE USER K TO RESTORE ADDRESS
+       8281 : 20 FB                       LI        H'FB'
+       8283 : 07                          LR        QL,A
+       8284 : 0F                          LR        DC,Q
+       8285 : 20 80                       LI        H'80'
+       8287 : 17                          ST
+       8288 : 20 AF                       LI        H'AF'
+       828A : 17                          ST
+       828B : 90 E0                       BR        BXX       ; TO START
+       828D :                    *RESTORE BYTE TO USER MEMORY
+       828D : 20 E0              TT       LI        H'E0'
+       828F : 07                          LR        QL,A
+       8290 : 0F                          LR        DC,Q
+       8291 : 16                          LM
+       8292 : 5A                          LR        10,A
+       8293 : 16                          LM
+       8294 : 5B                          LR        11,A
+       8295 : 16                          LM
+       8296 : 10                          LR        DC,H      ; USER ADDRESS
+       8297 : 17                          ST
+       8298 : 90 D3                       BR        BXX       ; TO START
+       829A :                    *HEX ARITHMETIC
+       829A : 49                 HEX      LR        A,9
+       829B : 25 2B                       CI        C'+'
+       829D : 84 0B                       BZ        PLUS
+       829F :                    *COMPLIMENT BEFORE ADD=SUBTRACT
+       829F : 46                          LR        A,6
+       82A0 : 18                          COM
+       82A1 : 1F                          INC                 ; 2'S COMPLIMENT
+       82A2 : 1E                          LR        J,W
+       82A3 : 56                          LR        6,A
+       82A4 : 45                          LR        A,5
+       82A5 : 18                          COM
+       82A6 : 1D                          LR        W,J
+       82A7 : 19                          LNK
+       82A8 : 55                          LR        5,A
+       82A9 :                    *ADDITION
+       82A9 : 44                 PLUS     LR        A,4
+       82AA : C6                          AS        6
+       82AB : 54                          LR        4,A
+       82AC : 43                          LR        A,3
+       82AD : 19                          LNK
+       82AE : C5                          AS        5
+       82AF :                    *NOW WRITE TO DISPLAY RESULTS
+       82AF : 07                          LR        QL,A
+       82B0 : 28 81 1D                    PI        FOP2
+       82B3 : 44                          LR        A,4
+       82B4 : 07                          LR        QL,A
+       82B5 : 28 81 1D           V        PI        FOP2
+       82B8 : 90 B3                       BR        BXX
+       82BA :                    *PRINT ACCUMULATOR
+       82BA : 78                 A1       LIS       8
+       82BB : 90 5E              X        BR        I1
+       82BD :                    *CLEAR BREAK POINT ENTRY
+       82BD : 90 CF              T        BR        TT
+       82BF :                    *CHANGE LAST USED FIELD
+       82BF : 38                 C        DS        FCNT
+       82C0 : 91 F7                       BM        (V+3)     ; NO PARAMETERS S
+       82C2 : 49                          LR        A,FLG
+       82C3 : 10                          LR        DC,H
+       82C4 : 25 0C                       CI        OO        ; CK FOR PORT
+       82C6 : 94 04                       BNZ       C0        ; NOT PORT CHANGE
+       82C8 : 29 84 E6                    JMP       PORT      ; GO CHANGE PORT
+       82CB : 25 0D              C0       CI        PP
+       82CD : 91 0B                       BM        C2        ; REGISTER CHANGE
+       82CF : 94 03                       BNZ       C1        ; MEMORY CHANGE 1
+       82D1 : 43                          LR        A,3
+       82D2 : 17                          ST                  ; PC OR DC 1ST HA
+       82D3 : 44                 C1       LR        A,4
+       82D4 : 17                          ST
+       82D5 : 11                          LR        H,DC
+       82D6 : 4B                          LR        A,11
+       82D7 : 90 13                       BR        (C3+4)
+       82D9 : 4B                 C2       LR        A,11
+       82DA : 0B                          LR        IS,A
+       82DB : 24 EF                       AI        H'EF'
+       82DD : 07                          LR        QL,A
+       82DE : 0F                          LR        DC,Q
+       82DF : 1F                          INC
+       82E0 : 44                          LR        A,4
+       82E1 : 81 04                       BP        C4
+       82E3 : 17                          ST
+       82E4 : 90 02                       BR        C3
+       82E6 : 5C                 C4       LR        S,A
+       82E7 : 4B                 C3       LR        A,11
+       82E8 : 1F                          INC
+       82E9 : 21 3F                       NI        H'3F'
+       82EB : 07                          LR        QL,A
+       82EC : 20 20              C5       LI        H'20'     ; BLANK
+       82EE : 51                          LR        CHRS,A
+       82EF : 28 85 93                    PI        TTYO
+       82F2 : 76                          LIS       (C-A)     ; TABLE VALUE OF
+       82F3 : 05                          LR        KL,A
+       82F4 : 29 81 F6                    JMP       (RPTC+1)
+       82F7 : 46                 C55      LR        A,6
+       82F8 : 07                          LR        QL,A
+       82F9 : 90 F2                       BR        C5
+       82FB :                    *DISPLAY DC
+       82FB : 5A                 D        LR        10,A      ; HI STORE ADDRES
+       82FC : 20 EB                       LI        H'EB'
+       82FE : 90 3F                       BR        P1
+       8300 :                    *EXAMINE THIS ADDRESS
+       8300 : 7D                 E        LIS       PP
+       8301 : E9                          XS        FLG
+       8302 : 84 40                       BZ        P2        ; PC OR DC
+       8304 : 90 2E                       BR        N1
+       8306 :                    *FORMATTED PUNCH,FOR BOOT LOAD INPUT
+       8306 : 29 80 36           F        JMP       FPUN
+       8309 :                    *GO TO
+       8309 : 38                 G        DS        FCNT
+       830A : 91 0A                       BM        G1
+       830C :                    *GET NEW PC FROM PARAMETERS
+       830C : 5A                          LR        10,A
+       830D : 20 E7                       LI        H'E7'
+       830F : 5B                          LR        11,A      ; SET PC MEMORY A
+       8310 : 10                          LR        DC,H
+       8311 : 43                          LR        A,3
+       8312 : 17                          ST                  ; PC UPPER
+       8313 : 44                          LR        A,4
+       8314 : 17                          ST                  ; PC LOWER
+       8315 : 29 80 E7           G1       JMP       REST      ; RESTORE REGISTE
+       8318 :                    *ISAR DISPLAY
+       8318 : 20 3C              I        LI        60        ; REGISTER OF ISA
+       831A : 54                 I1       LR        4,A
+       831B : 56                          LR        6,A
+       831C : 70                          LIS       0
+       831D : 53                          LR        3,A       ; SET T;O REGISTER
+       831E : 55                          LR        5,A
+       831F : 7F                          LIS       RR
+       8320 : 59                          LR        FLG,A
+       8321 : 90 65                       BR        R23
+       8323 :                    *HIGH SPEED READER LOAD ROUTINE
+       8323 : 29 84 51           H        JMP       HIGH
+       8326 :                    *PORT PRINT
+       8326 : 7C                 O        LIS       OO        ; CODE FOR PORT
+       8327 : 90 3B                       BR        R1        ; PRINT PORT DATA
+       8329 :                    *BOOT LOAD
+       8329 : 29 84 46           L        JMP       LOAD
+       832C :                    *MEMORY PRINT
+       832C : 7A                 M        LIS       MM
+       832D : 90 35                       BR        R1
+       832F :                    *NEXT--DISPLAY NEXT MEMORY OR REGISTER LOC
+       832F : 10                 N        LR        DC,H
+       8330 : 71                          LIS       1
+       8331 : 8E                          ADC
+       8332 : 11                          LR        H,DC
+       8333 : 4A                 N1       LR        A,10
+       8334 : 53                          LR        3,A
+       8335 : 55                          LR        5,A
+       8336 : 4B                          LR        A,11
+       8337 : 54                          LR        4,A
+       8338 : 56                          LR        6,A
+       8339 : 90 36                       BR        R22
+       833B :                    *PC PRINTD
+       833B : 5A                 P        LR        10,A
+       833C : 20 E7                       LI        H'E7'
+       833E : C4                 P1       AS        4         ; ADD PC0 OR PC1
+       833F : C4                          AS        4         ; ADDRESS NOW +0
+       8340 : 5B                          LR        11,A
+       8341 : 7D                          LIS       PP
+       8342 : 59                          LR        FLG,A     ; SET TO P FOR 2
+       8343 : 10                 P2       LR        DC,H
+       8344 : 20 20                       LI        H'20'     ; BLANK
+       8346 : 51                          LR        CHRS,A
+       8347 : 28 85 93                    PI        TTYO
+       834A : 28 81 1B                    PI        FOP1      ; OP HEX WD,2 CHA
+       834D : 28 81 1B           POUT     PI        FOP1      ; OP HEX WD,2 CHA
+       8350 : 29 81 D1           P3       JMP       STRT
+       8353 :                    *S-FETCH STATUS REGISTER
+       8353 : 20 3E              S        LI        62        ; LOC OF STATUS S
+       8355 : 90 C4                       BR        I1
+       8357 :                    *PUNCH BINARY TAPE FOR PROM
+       8357 : 71                 B        LIS       1
+       8358 : 07                          LR        QL,A
+       8359 : 90 73                       BR        PPUN
+       835B :                    *8 BIT PROM ENTRY
+       835B : 70                 J        LIS       0         ; CODE FOR 8 BIT=
+       835C : 90 FB                       BR        (B+1)
+       835E :                    *BREAKPOINT ENTRY FROM TABLE
+       835E : 29 82 6F           U        JMP       BRAK      ; TEMP NOP
+       8361 :                    *R-ENTRY FOR REGISTER DISPLAY
+       8361 : 20 0F              R        LI        RR
+       8363 : 59                 R1       LR        FLG,A     ; SET TO R OR M
+       8364 : 38                          DS        FCNT
+       8365 : 91 EA                       BM        P3        ; NO PARAMETERS G
+       8367 : 94 05                       BNZ       R2
+       8369 :                    *MAKE HI ADDR=LO ADDR
+       8369 : 43                 R3       LR        A,3
+       836A : 55                          LR        5,A
+       836B : 44                          LR        A,4
+       836C : 56                          LR        6,A
+       836D :                    *PRINT CR LF BLANK BLANK (R OR M) BLANK XXXX
+       836D : 28 85 78           R2       PI        TTCR      ; WRITE CR/LF
+       8370 : 20 20              R22      LI        H'20'     ; BLANK
+       8372 : 51                          LR        CHRS,A
+       8373 : 28 85 93                    PI        TTYO
+       8376 : 49                          LR        A,FLG
+       8377 : 24 43                       AI        H'43'
+       8379 : 51                          LR        CHRS,A
+       837A : 28 85 93                    PI        TTYO
+       837D : 43                          LR        A,3       ; START LO ADDRES
+       837E : 07                          LR        QL,A
+       837F : 28 81 1D                    PI        FOP2
+       8382 : 44                          LR        A,4
+       8383 : 07                          LR        QL,A
+       8384 : 28 81 1D                    PI        FOP2
+       8387 : 20 3D              R23      LI        C'='
+       8389 : 51                          LR        CHRS,A
+       838A : 28 85 93                    PI        TTYO
+       838D :                    *NOW PRINT DATA
+       838D : 43                 R4       LR        A,3
+       838E : 5A                          LR        10,A
+       838F : 44                          LR        A,4
+       8390 : 5B                          LR        11,A
+       8391 : 49                          LR        A,FLG
+       8392 : 25 0C                       CI        OO        ; PORT?
+       8394 : 84 60                       BZ        PIO       ; GO TO PORT ROUT
+       8396 : 25 0F                       CI        RR        ; TEST FOR REGIST
+       8398 : 94 14                       BNZ       R5        ; MEMORY LOC
+       839A :                    *
+       839A :                    *REGISRER FETCH IS IT IN SCRATCH OR TEMP MEM
+       839A : 44                          LR        A,4
+       839B : 0B                          LR        IS,A
+       839C : 0A                          LR        A,IS
+       839D : 25 0F                       CI        15
+       839F : 81 08                       BP        R44       ; NOY REGISTER AD
+       83A1 :                    *LOAD ISAR AND FETCH
+       83A1 : 4C                          LR        A,S
+       83A2 : 07                          LR        QL,A
+       83A3 : 28 81 1D           R76      PI        FOP2
+       83A6 : 90 0A                       BR        R77
+       83A8 :                    *UPDATE REG 0-15 ADDRESS TO MEM LOC
+       83A8 : 24 EF              R44      AI        H'EF'     ; LO RAM-START OF
+       83AA : 5B                          LR        11,A
+       83AB : 02                          LR        A,QU      ; HI ADDRESS
+       83AC : 5A                          LR        10,A      ; HI RAM ADDRESS
+       83AD :                    *FETCH DATA FROM MEMORY
+       83AD : 10                 R5       LR        DC,H
+       83AE :                    *DATA NOW IN NOW PRINT
+       83AE : 28 81 1B           R6       PI        FOP1      ; TYPE 2 CHAR FRO
+       83B1 : 20 20              R77      LI        H'20'     ; BLANK
+       83B3 : 51                          LR        CHRS,A
+       83B4 : 28 85 93                    PI        TTYO      ; BLANK
+       83B7 :                    *CHECK FOR END
+       83B7 : 44                          LR        A,4
+       83B8 : 5B                          LR        11,A      ; SAVE FOR REENTR
+       83B9 : E6                          XS        6
+       83BA : 43                          LR        A,3
+       83BB : 5A                          LR        10,A      ; SAVE FOR REENTR
+       83BC : 94 04                       BNZ       R7
+       83BE : E5                          XS        5
+       83BF : 84 90                       BZ        P3
+       83C1 : 44                 R7       LR        A,4
+       83C2 :                    *UPDATE FOR NEXT WORD,LINE HAS MAX OF 8
+       83C2 : 1F                          INC
+       83C3 : 54                          LR        4,A       ; INCREMENT ADDRE
+       83C4 : 43                          LR        A,3
+       83C5 : 19                          LNK
+       83C6 : 53                          LR        3,A       ; INCR HI ADDRESS
+       83C7 : 77                          LIS       7
+       83C8 : F4                          NS        4
+       83C9 : 84 A3                       BZ        R2        ; NEW LINE
+       83CB : 90 C1                       BR        R4        ; CONTINUE THIS L
+       83CD :                    *PUNCH HEADER,THEN 256 X SIZE. HI 4 BITS,
+       83CD :                    *  THEN HEADWE 256X SIZE LO BITS.
+       83CD :                    *  CONTINUE ALTERNATING AS ABOVE UNTIL LAST
+       83CD :                    *  HFLG INITIALLY=SIZE,WHEN=0 PUNCH LEADER,W
+       83CD : 70                 PPUN     LIS       0
+       83CE : 5B                          LR        11,A      ; LOW DC ADDRESS
+       83CF : 20 92                       LI        H'92'
+       83D1 : 51                          LR        CHRS,A
+       83D2 : 28 85 93                    PI        TTYO
+       83D5 : 73                 PPA      LIS       3
+       83D6 : 58                          LR        HFLG,A    ; NEG SIZE MINUS
+       83D7 : F7                          NS        SIZE      ; MASK HI BITS
+       83D8 : 57                          LR        SIZE,A
+       83D9 : 43                 PPB      LR        A,SA
+       83DA : 5A                          LR        10,A
+       83DB : 10                          LR        DC,H
+       83DC : 47                          LR        A,SIZE    ; LENGTH OF BLOCK
+       83DD : 54                          LR        4,A
+       83DE : 20 30              PBLK     LI        H'30'     ; SCRATCH MEMORY
+       83E0 : 56                          LR        XFLG,A
+       83E1 : 70                 PLP      LIS       0
+       83E2 : 51                          LR        CHRS,A
+       83E3 : 28 85 93                    PI        TTYO      ; WRITE BLANK
+       83E6 : 36                          DS        XFLG
+       83E7 : 94 F9                       BNZ       PLP       ; CONTINUE BLANKS
+       83E9 :                    *CHECK FOR DONE
+       83E9 : 38                          DS        HFLG
+       83EA : 81 28                       BP        PPC
+       83EC :                    *****DONE******
+       83EC : 20 94                       LI        H'94'
+       83EE : 51                          LR        CHRS,A
+       83EF : 28 85 93           PLXX     PI        TTYO      ; PUNCH OFF
+       83F2 : 29 80 AE                    JMP       BGSV
+       83F5 :                    *POR T DISPLAY
+       83F5 : 20 E0              PIO      LI        H'E0'     ; SCRATCH MEMORY
+       83F7 : 07                          LR        QL,A
+       83F8 : 0F                          LR        DC,Q      ; SCRATCH MEMORY
+       83F9 : 44                          LR        A,4       ; PORT ADDRESS
+       83FA : 25 0F                       CI        15        ; SHORT PORT ADDR
+       83FC : 82 12                       BC        INS       ; BUILD INS INSTR
+       83FE : 20 26                       LI        H'26'     ; LONG INPUT
+       8400 : 17                          ST
+       8401 : 44                          LR        A,4       ; PORT ADDRESS
+       8402 : 17                          ST
+       8403 : 77                 PXX      LIS       7
+       8404 : 17                          ST
+       8405 : 20 29                       LI        H'29'     ; JMP INST
+       8407 : 17                          ST
+       8408 : 20 83                       LI        H'83'     ; HI ADDRESS
+       840A : 17                          ST
+       840B : 20 A3                       LI        H'A3'
+       840D : 17                          ST
+       840E : 0D                          LR        P0,Q      ; GO EXECUTE
+       840F :                    *SHORT INS
+       840F : 24 A0              INS      AI        H'A0'
+       8411 : 90 F0                       BR        (PXX-1)
+       8413 :                    *OUTPUT 2 RUBOUTS,REGISTER CHRS HAS -1 AFTE
+       8413 :                    *    RETURN FROM TTYO OF BLANKS
+       8413 :                    * PUNCH BLOCK OF 256
+       8413 : 70                 PPC      LIS       0
+       8414 : 56                          LR        XFLG,A
+       8415 : 03                          LR        A,QL
+       8416 : E6                          XS        XFLG
+       8417 : 84 20                       BZ        EGHT      ; 8 BIT FORMAT
+       8419 : 48                 PUNL     LR        A,HFLG
+       841A : F8                          NS        HFLG
+       841B : 16                          LM
+       841C : 94 02                       BNZ       *+3
+       841E : 15                          SL        4         ; TO HI 4 BITS
+       841F : 14                          SR        4         ; TO LO 4 BITS
+       8420 : 23 4F                       XI        H'4F'
+       8422 : 51                          LR        CHRS,A
+       8423 : 28 85 93                    PI        TTYO
+       8426 : 36                          DS        XFLG
+       8427 : 94 F1                       BNZ       PUNL
+       8429 :                    *CHECK FOR LENGTH GREATER THAN 256
+       8429 : 34                          DS        4         ; NO PAGES/BLOCK
+       842A : 81 E8                       BP        PPC       ; NEXT 256
+       842C :                    *CHECK IF LOW BYTES ALREADY DONE
+       842C : 38                          DS        HFLG
+       842D : 81 AB                       BP        PPB       ; GO DO LOW BYTES
+       842F :                    *UPDATE TO NEXT PAGE
+       842F : 43                 PONT     LR        A,SA
+       8430 : 1F                          INC
+       8431 : C7                          AS        SIZE
+       8432 : 53                          LR        SA,A
+       8433 : E5                          XS        EA        ; END PAGE
+       8434 : 84 A9                       BZ        PBLK      ; DO TRAILER
+       8436 : 90 9E                       BR        PPA       ; START NEXT HI B
+       8438 :                    *8 BIT FORMAT
+       8438 : 16                 EGHT     LM
+       8439 : 51                          LR        CHRS,A
+       843A : 28 85 93                    PI        TTYO      ; OUTPUT BYTE
+       843D : 36                          DS        XFLG
+       843E : 94 F9                       BNZ       EGHT      ; NEXT BYTE
+       8440 : 34                          DS        4         ; PAGES PER BLOCK
+       8441 : 81 D1                       BP        PPC       ; START NEXT BLOC
+       8443 : 58                          LR        HFLG,A
+       8444 : 90 EA                       BR        PONT      ; NEXT PAGE
+       8446 :                    *  START OF BOOT LOADER
+       8446 : 20 91              LOAD     LI        H'91'     ; READER ON COMMA
+       8448 : 51                          LR        CHRS,A    ; PASS IT
+       8449 : 28 85 93                    PI        TTYO      ; AND TYPE IT
+       844C : 2A 85 53                    DCI       TTYI      ; SERIAL INPUT PR
+       844F : 90 0C                       BR        BOT1      ; SKIP OVER PARAL
+       8451 : 2A 85 3D           HIGH     DCI       PINP
+       8454 : 70                          LIS       0
+       8455 : B9                 SLF1     OUTS      PPRT      ; INITIALIZE PARA
+       8456 : B8                          OUTS      PSTS      ; INIT CONTROL PO
+       8457 : A8                          INS       PSTS
+       8458 : 12                          SR        1
+       8459 : 15                          SL        4
+       845A : 91 FA                       BM        SLF1      ; LOCK IN LOOP TI
+       845C : 70                 BOT1     LIS       0
+       845D : 56                          LR        XFLG,A    ; CLEAR FIRST X D
+       845E : 0E                          LR        Q,DC      ; SET TO TTYI OR
+       845F : 57                          LR        CKSM,A
+       8460 : 28 85 3C           IDLE     PI        CHAR      ; GET HEADER CHAR
+       8463 : 13                          SL        1         ; CLEAR PARITY BI
+       8464 : 12                          SR        1
+       8465 : 25 3A                       CI        H'3A'     ; COLON
+       8467 : 84 4F                       BZ        FORM      ; FORMULATOR FORM
+       8469 : 25 53                       CI        C'S'      ; IS IT AN LOAD A
+       846B : 84 31                       BZ        SETA
+       846D : 25 2A                       CI        C'*'      ; IS IT THE END O
+       846F : 84 38                       BZ        ENDX
+       8471 : 23 58                       XI        C'X'      ; WELL, IF IT ISN
+       8473 : 94 EC                       BNZ       IDLE
+       8475 :                    ******   HAVE THE START OF A DATA LINE   ***
+       8475 : 57                 DATA     LR        CKSM,A    ; INITIUALIZE CHK
+       8476 : 78                          LIS       H'08'
+       8477 : 55                          LR        CCNT,A    ; INITIALIZE BYTE
+       8478 : 56                          LR        XFLG,A    ; SHOW THAT X HAS
+       8479 : 28 85 15           CONT     PI        BYTE
+       847C : 17                          ST                  ; STORE THE BYTE
+       847D : 35                          DS        CCNT
+       847E : 94 FA                       BNZ       CONT
+       8480 : 28 85 3C                    PI        CHAR      ; GET CHK CHAR FR
+       8483 : 21 3F                       NI        H'3F'     ; MASK TO SIX BIT
+       8485 : 24 D0                       AI        H'D0'     ; ASCII CONVERT--
+       8487 : 82 03                       BC        *+4       ; CARRY IF IT WAS
+       8489 : 24 39                       AI        H'39'     ; FINISH CONVERSI
+       848B : E7                          XS        CKSM      ; MAKE THE COMPAR
+       848C : 15                          SL        4         ; LO 4 BITS TO HI
+       848D : 84 D2                       BZ        IDLE      ; IF OK, LET'S GE
+       848F :                    **********     CHK SUM ERROR HALT   ********
+       848F : 20 43              SLF2     LI        C'C'
+       8491 : 51                          LR        CHRS,A
+       8492 : 28 85 93                    PI        TTYO
+       8495 : 20 4B                       LI        C'K'
+       8497 : 51                          LR        CHRS,A
+       8498 : 28 85 93                    PI        TTYO
+       849B : 90 0F                       BR        STPP
+       849D : 28 85 15           SETA     PI        BYTE      ; GET NEW LOAD AD
+       84A0 : 5A                          LR        10,A
+       84A1 : 28 85 15                    PI        BYTE
+       84A4 : 5B                          LR        11,A
+       84A5 : 10                          LR        DC,H      ; SET THE ADDRESS
+       84A6 : 90 B9                       BR        IDLE
+       84A8 : F6                 ENDX     NS        XFLG      ; HAVE AN *, BUT
+       84A9 : 84 B6                       BZ        IDLE      ; MUST BE ONLY AT
+       84AB :                    *                            WAS 2A+0 OR 2A
+       84AB :                    *********    HALT LOOP FOR WHEN FINISHED  **
+       84AB : 20 93              STPP     LI        H'93'     ; READER OFF COMM
+       84AD : 51                          LR        CHRS,A    ; PASS
+       84AE : 29 83 EF           SLF3     JMP       PLXX
+       84B1 : 2B                          NOP
+       84B2 : 2B                          NOP
+       84B3 : 2B                          NOP
+       84B4 : 2B                          NOP
+       84B5 : 2B                          NOP
+       84B6 : 2B                          NOP
+       84B7 : 70                 FORM     LIS       0
+       84B8 : 57                          LR        CKSM,A    ; ZERO CKSM TO START
+       84B9 : 18                          COM
+       84BA : 56                          LR        XFLG,A
+       84BB : 28 85 15                    PI        BYTE      ; LENGTH OF BLOCK
+       84BE : 55                          LR        CCNT,A
+       84BF : F5                 XS       NS        CCNT
+       84C0 : 84 EA                       BZ        STPP      ; ZERO RECORD IS
+       84C2 : 28 85 15                    PI        BYTE      ; ADDRESS HI
+       84C5 : 5A                          LR        10,A
+       84C6 : 28 85 15                    PI        BYTE      ; ADDRESS LO
+       84C9 : 5B                          LR        11,A
+       84CA : 10                          LR        DC,H
+       84CB : 28 85 15                    PI        BYTE      ; CODE BYTE
+       84CE : FB                          NS        CHR1
+       84CF : 94 90                       BNZ       IDLE      ; NOT DATA RECORD
+       84D1 : 28 85 15           FMLP     PI        BYTE      ; DATA FETCH
+       84D4 : 17                          ST
+       84D5 : 35                          DS        CCNT      ; LENGTH
+       84D6 : 94 FA                       BNZ       FMLP      ; LOOP FOR MORE D
+       84D8 : 2B                          NOP
+       84D9 : 2B                          NOP
+       84DA : 2B                          NOP
+       84DB : 2B                          NOP
+       84DC : 28 85 15                    PI        BYTE      ; FETCH CKSM
+       84DF : 47                          LR        A,CKSM
+       84E0 : F7                          NS        CKSM      ; SHOULD BE ZERO
+       84E1 : 94 AD                       BNZ       SLF2      ; CKSM ERROR
+       84E3 : 29 84 60                    JMP       IDLE      ; GET NEXT BLOCK
+       84E6 :                    *PORT CHANGE ROUTINE
+       84E6 : 20 DF              PORT     LI        H'DF'
+       84E8 : 07                          LR        QL,A
+       84E9 : 0F                          LR        DC,Q
+       84EA : 46                          LR        A,6
+       84EB : 5B                          LR        11,A
+       84EC : 25 0F                       CI        15
+       84EE : 82 1A                       BC        OUTS      ; DO SHORT OUTS
+       84F0 : 20 27                       LI        H'27'
+       84F2 : 17                          ST
+       84F3 : 46                          LR        A,6
+       84F4 : 17                          ST
+       84F5 : 20 44                       LI        H'44'
+       84F7 : 17                          ST
+       84F8 : 20 27                       LI        H'27'
+       84FA : 17                          ST
+       84FB : 46                          LR        A,6
+       84FC : 17                 JMP      ST
+       84FD : 20 29                       LI        H'29'
+       84FF : 17                          ST
+       8500 : 20 82                       LI        H'82'
+       8502 : 17                          ST
+       8503 : 20 F7                       LI        H'F7'     ; TO C55'
+       8505 : 17                          ST
+       8506 : 20 00                       LI        0
+       8508 : 0D                          LR        P0,Q      ; NOW EXECUTE
+       8509 : 24 B0              OUTS     AI        H'B0'
+       850B : 17                          ST
+       850C : 20 44                       LI        H'44'
+       850E : 17                          ST
+       850F : 20 B0                       LI        H'B0'
+       8511 : C6                          AS        6
+       8512 : 90 E9                       BR        JMP
+       8514 : 2B                          NOP
+       8515 :                    ***GET A BYTE****
+       8515 :                    ***       GETS THE BYTE,CONVERTS,AND ADDS TO
+       8515 : 08                 BYTE     LR        K,P       ; SAVE PC1
+       8516 : 72                          LIS       2
+       8517 : 58                          LR        HFLG,A    ; SET THE HALF FL
+       8518 : 4B                 AGAN     LR        A,CHR1
+       8519 : 15                          SL        4
+       851A : 5B                          LR        CHR1,A
+       851B : 28 85 3C                    PI        CHAR
+       851E : 21 3F                       NI        H'3F'     ; MASK TO 6 BITS
+       8520 : 24 D0                       AI        H'D0'     ; ASCII CONVERT--
+       8522 : 82 03                       BC        *+4
+       8524 : 24 39                       AI        H'39'     ; NEXT CLEAN UP A
+       8526 : CB                          AS        CHR1
+       8527 : 5B                          LR        CHR1,A    ; TEMP STORE
+       8528 : 46                          LR        A,XFLG
+       8529 : F6                          NS        XFLG      ; TEST FOR NEGATI
+       852A : 91 04                       BM        AEND      ; NEGATIVE=FORMUL
+       852C : 4B                          LR        A,CHR1
+       852D : C7                          AS        CKSM      ; ADD NEW CHAR TO
+       852E : 57                          LR        CKSM,A
+       852F : 38                 AEND     DS        HFLG      ; DECREMENT HALF
+       8530 : 94 E7                       BNZ       AGAN      ; GET 2ND HALF
+       8532 : 46                          LR        A,XFLG
+       8533 : F6                          NS        XFLG
+       8534 : 81 04                       BP        ADON      ; IF FORMULATOR
+       8536 : 47                          LR        A,CKSM
+       8537 : CB                          AS        CHR1
+       8538 : 57                          LR        CKSM,A
+       8539 : 4B                 ADON     LR        A,CHR1    ; ONLY HAVE UPPER
+       853A : 09                          LR        P,K       ; RESTORE PC1
+       853B : 1C                          POP
+       853C :                    ********     PARALLEL AND SERIAL INPUT ROUTI
+       853C :                    **      COMMON CALL IS A PUSH TO CHAR
+       853C :                    **      CHAR USES Q TO JUMP TO APPROPRIATE R
+       853C : 0D                 CHAR     LR        P0,Q      ; JUMP TO INPUT R
+       853D :                    **   PINP:  GET A CHARACTER FROM PORT 4
+       853D :                    **    TYPICALLY USED WITH TAPE READER, BUT H
+       853D :                    **    DISCIPLINE THAT IS APPLICABLE TO OTHER
+       853D :                    **    LOOKS FOR A CHARACTER READY INPUT, AND
+       853D :                    **    CHARACTER. NEXT CPU GIVES AN ADVANCE P
+       853D :                    **    AFTER THE DEVICE READY INPUT GOES NOT
+       853D : A8                 PINP     INS       PSTS      ; GET A CHAR FROM
+       853E : 13                          SL        1
+       853F : 91 FD                       BM        PINP      ; LOOK FOR SPOCKE
+       8541 : 7F                          LIS       H'0F'     ; 100 US DELAY AF
+       8542 : 18                          COM
+       8543 : 1F                 PDLY     INC
+       8544 : 94 FE                       BNZ       PDLY
+       8546 : A9                          INS       PPRT      ; AND NOW GET DAT
+       8547 : 18                          COM
+       8548 : 51                          LR        CHRS,A    ; TEMP STORE CNEW
+       8549 : 79                          LIS       9         ; ADVANCE READER
+       854A : B8                          OUTS      PSTS
+       854B : A8                 NOSP     INS       PSTS      ; GET READER STAT
+       854C : 13                          SL        1
+       854D : 81 FD                       BP        NOSP      ; AND LOOK
+       854F : 71                          LIS       1
+       8550 : B8                          OUTS      PSTS      ; REMOVE DRIVE PU
+       8551 : 41                          LR        A,CHRS    ; PICK BACK UP TH
+       8552 : 1C                          POP
+       8553 :                    ***TTYI: SERIAL I/P           CHARACTER RETU
+       8553 :                    **   REG BCNT HOLDS BIT COUNT   REG CHRS HOL
+       8553 : A8                 TTYI     INS       IPOR
+       8554 : 91 FE                       BM        TTYI      ; LOOK FOR START
+       8556 : 40                          LR        A,BAUD    ; GET DELAY COUNT
+       8557 : 90 01              DLY3     BR        *+2       ; SILLY BRANCH FO
+       8559 : 24 01                       AI        H'01'
+       855B : 94 FB                       BNZ       DLY3      ; THIS LOOP OS HA
+       855D : A8                          INS       IPOR      ; CHECK START BIT
+       855E : 91 F4                       BM        TTYI
+       8560 : 79                 TTD      LIS       9
+       8561 : 52                          LR        BCNT,A    ; SET BIT COUNT,9
+       8562 : 21 80              LOOP     NI        H'80'     ; MASK TO GET INP
+       8564 : C1                          AS        CHRS      ; (LD'G START BIT
+       8565 : 32                          DS        BCNT
+       8566 : 91 10                       BM        STOP      ; NEG IF LOOKING
+       8568 : 84 02                       BZ        LOP2      ; IF LAST BIT, DO
+       856A : 12                 LOP3     SR        1         ; SHIFT ASSEMBLED
+       856B : 51                 LOP2     LR        CHRS,A    ; STORE ASSEMBLED
+       856C : 40                          LR        A,BAUD    ; START OF FULL B
+       856D : BB                 DLY4     OUTS      NUSE      ; NOP FOR DELAY
+       856E : BB                          OUTS      NUSE
+       856F : BB                          OUTS      NUSE
+       8570 : 24 01                       AI        H'01'     ; INCR WITH A 5US
+       8572 : 94 FA                       BNZ       DLY4
+       8574 : A8                          INS       IPOR      ; GET NEW BIT
+       8575 : 90 EC                       BR        LOOP
+       8577 : 1C                 STOP     POP
+       8578 :                    ******* SERIAL OUTPUT ROUTINE  ***********
+       8578 :                    **  HAS 1 START, 8 DATA, 2 STOP. USES PORT 0
+       8578 :                    **  BAUD RATE IS SET BY A DELAY COUNT IN REG
+       8578 :                    **   CALL BY PUTTING CHAR IN REG CHRS, AND S
+       8578 :                    **   ROUTINE RETURNS WITH ALL 1'S IN REG CHR
+       8578 : 08                 TTCR     LR        K,P
+       8579 : 7D                          LIS       CR
+       857A : 51                          LR        CHRS,A
+       857B : 28 85 93                    PI        TTYO
+       857E : 7A                          LIS       LF
+       857F : 51                          LR        CHRS,A
+       8580 : 28 85 93                    PI        TTYO
+       8583 : 28 85 93                    PI        TTYO
+       8586 : 28 85 93                    PI        TTYO
+       8589 : 28 85 93                    PI        TTYO
+       858C : 28 85 93                    PI        TTYO
+       858F : 28 85 93                    PI        TTYO
+       8592 : 0C                          PK                  ; RETURN
+       8593 : 7B                 TTYO     LIS       H'0B'
+       8594 : 52                          LR        BCNT,A    ; SET BIT COUNT F
+       8595 : 70                          LIS       0
+       8596 : B8                          OUTS      OPOR      ; OUTPUT START BI
+       8597 :                    ***   DELAY ROUTINE-- 3.3MS FOR 300 BAUD, 9
+       8597 : 40                 DLY1     LR        A,BAUD    ; GET DELAY COUNT
+       8598 : BB                 DLY2     OUTS      NUSE      ; NOP FOR DELAY
+       8599 : BB                          OUTS      NUSE
+       859A : BB                          OUTS      NUSE
+       859B : 24 01                       AI        H'01'     ; INCR WITH A 5 U
+       859D : 94 FA                       BNZ       DLY2
+       859F : 32                          DS        BCNT
+       85A0 : 94 02                       BNZ       DLY5      ; NOW NEXT BI
+       85A2 : 1C                          POP                 ; ALL FINI,BACK T
+       85A3 : 71                 DLY5     LIS       1         ; GET CHARACTER
+       85A4 : F1                          NS        CHRS      ; MASK OFF ALL BU
+       85A5 : B8                          OUTS      OPOR      ; OUTPUT THE MEW
+       85A6 : 41                          LR        A,CHRS    ; NOW SHIFT THE C
+       85A7 : 12                          SR        1
+       85A8 : 24 80                       AI        H'80'     ; FILL,WITH 1'S F
+       85AA : 51                          LR        CHRS,A
+       85AB :                    *
+       85AB : 90 EB              EDUX     BR        DLY1      ; NOW DELAY,THEN
+       85AD :                    *
+       85AD :                    *
+       85AD :                    * EDUCATOR INITIALIZATION
+       85AD :                    *
+       85AD : 70                 EDUC     LIS       0         ; CLEAR INTERRUPT PORTS
+       85AE : 52                          LR        2,A       ; CLEAR STORE MODE FLAG
+       85AF : 20 7F                       LI        H'7F'
+       85B1 : B0                          OUTS      0
+       85B2 : 67                          LISU      7
+       85B3 : 68                          LISL      0
+       85B4 : 1F                          INC
+       85B5 : 5D                          LR        I,A
+       85B6 : 02                          LR        A,QU      ; SAVE QU FOR RETURN TO FAIR-
+       85B7 : 5E                          LR        D,A
+       85B8 :                    * LOAD ZEROES INTO ADDRESS DISPLAY AND DC
+       85B8 : 66                 A9       LISU      6
+       85B9 : 6B                          LISL      3
+       85BA : 70                          LIS       0
+       85BB : 5E                 A20      LR        D,A
+       85BC : 8F FE                       BR7       A20
+       85BE : 74                          LIS       4
+       85BF : 57                          LR        7,A
+       85C0 :                    * LOAD MEMORY TO DATA DISPLAY
+       85C0 : 2A 00 00                    DCI       0
+       85C3 : 0E                          LR        Q,DC
+       85C4 : 28 87 13                    PI        MTDD
+       85C7 :                    * SCAN KEYBOARD
+       85C7 : 28 87 31           A3       PI        SCAN
+       85CA : 20 12                       LI        H'12'
+       85CC : E0                          XS        0
+       85CD : 84 17                       BZ        A38       ; BRANCH IF IA KEY
+       85CF : 24 FE                       AI        H'FE'     ; WAS IT H'10'
+       85D1 : 84 13                       BZ        A38       ; BRANCH IF DA KEY
+       85D3 : 76                          LIS       6
+       85D4 : 56                          LR        6,A       ; LOAD DELAY TIME FOR REPEAT
+       85D5 : 20 20                       LI        H'20'
+       85D7 : 55                          LR        5,A       ; LOAD FIRST DELAY TIME FOR R
+       85D8 : 40                          LR        A,0
+       85D9 : 1F                          INC
+       85DA : 94 EC                       BNZ       A3        ; BRANCH IF KEY STILL DOWN
+       85DC : 28 87 31           A5       PI        SCAN
+       85DF : 40                          LR        A,0
+       85E0 : 1F                          INC
+       85E1 : 84 FA                       BZ        A5        ; BRANCH IF NO KEYS
+       85E3 : 90 0E                       BR        A54
+       85E5 : E5                 A38      XS        5
+       85E6 : 84 04                       BZ        A53       ; BRANCH IF FIRST DELAY IS OV
+       85E8 : 35                          DS        5
+       85E9 : 90 DD                       BR        A3
+       85EB : 36                 A53      DS        6
+       85EC : 94 DA                       BNZ       A3        ; BRANCH IF DELAY TIME IS OVE
+       85EE : 76                          LIS       6
+       85EF : 56                          LR        6,A       ; RELOAD DELAY TIME FOR REPEA
+       85F0 : 90 EB                       BR        A5
+       85F2 :                    * DETERMINE WHICH KEY WAS DETECTED
+       85F2 : 11                 A54      LR        H,DC
+       85F3 : 20 10                       LI        H'10'
+       85F5 : F0                          NS        0
+       85F6 : 94 04                       BNZ       A6        ; BRANCH IF NOT HEX DIGIT KEY
+       85F8 : 29 86 97                    JMP       A27
+       85FB : 2A 86 0B           A6       DCI       FUNC
+       85FE : 7F                          LIS       15
+       85FF : F0                          NS        0
+       8600 : 50                          LR        0,A
+       8601 : 84 06                       BZ        A19
+       8603 : 73                 A4       LIS       3
+       8604 : 8E                          ADC
+       8605 : 30                          DS        0
+       8606 : 94 FC                       BNZ       A4
+       8608 : 0E                 A19      LR        Q,DC
+       8609 : 10                          LR        DC,H
+       860A : 0D                          LR        P0,Q
+       860B : 29 86 5C           FUNC     JMP       DA
+       860E : 29 86 23                    JMP       ENT
+       8611 : 29 86 50                    JMP       IA
+       8614 : 29 86 D2                    JMP       MOVU
+       8617 : 29 86 EF                    JMP       MOVD
+       861A : 29 86 64                    JMP       STM
+       861D : 29 86 40                    JMP       GO
+       8620 : 29 86 83                    JMP       CLR
+       8623 :                    * 'ENTER' KEY DETECTED
+       8623 : 71                 ENT      LIS       1
+       8624 : F2                          NS        2
+       8625 : 84 17                       BZ        LA        ; BRANCH IF NOT STORE MODE
+       8627 : 72                          LIS       2
+       8628 : E7                          XS        7
+       8629 : 84 9D                       BZ        A3        ; BRANCH IF NO DIGITS ENTERED
+       862B : 20 FF              A14      LI        H'FF'     ; ADDRESS DISPLAY TO DC
+       862D : 8E                          ADC
+       862E : 6C                          LISL      4         ; DATA DISPLAY TO MEMORY
+       862F : 4D                          LR        A,I
+       8630 : 15                          SL        4
+       8631 : EC                          XS        S
+       8632 : 17                          ST
+       8633 : 28 87 1C                    PI        INAD
+       8636 : 28 87 13           A25      PI        MTDD
+       8639 : 72                 A23      LIS       2         ; SET DIGIT COUNT TO 2
+       863A : 57                 A16      LR        7,A
+       863B : 90 8B                       BR        A3
+       863D : 74                 LA       LIS       4         ; SET DIGIT COUNT TO 4
+       863E : 90 FB                       BR        A16
+       8640 :                    * 'GO' KEY DETECTED
+       8640 : 20 FF              GO       LI        H'FF'     ; DISPLAY OFF
+       8642 : B1                          OUTS      1
+       8643 : 20 C0                       LI        H'C0'
+       8645 : B0                          OUTS      0
+       8646 : 70                          LIS       0
+       8647 : BE                          OUTS      14        ; INTERRUPT OFF
+       8648 : 28 87 02                    PI        ATDC
+       864B : 67                          LISU      7
+       864C : 69                          LISL      1
+       864D : 4C                          LR        A,S
+       864E : 06                          LR        QU,A      ; RESTORE QU FOR FAIR-BUG
+       864F : 0C                          PK
+       8650 :                    * 'INCREMENT ADDRESS' KEY DETECTED
+       8650 : 28 87 1C           IA       PI        INAD      ; INCREMENT ADDRESS DISPLAY
+       8653 : 28 87 13           A34      PI        MTDD      ; MEMORY TO DATA DISPLAY
+       8656 : 71                          LIS       1
+       8657 : F2                          NS        2
+       8658 : 94 E0                       BNZ       A23       ; BRANCH IF STORE MODE FLAG
+       865A : 90 E2                       BR        LA
+       865C :                    * 'DECREMENT ADDESS' KEY DETECTED
+       865C : 28 87 27           DA       PI        DEAD
+       865F : 28 87 02                    PI        ATDC
+       8662 : 90 F0                       BR        A34
+       8664 :                    * 'STORE MODE' KEY DETECTED
+       8664 : 71                 STM      LIS       1
+       8665 : F2                          NS        2
+       8666 : 94 0C                       BNZ       A26       ; BRANCH IF STORE MODE FLAG
+       8668 : 71                          LIS       1         ; SET STORE MODE FLAG
+       8669 : E2                          XS        2
+       866A : 52                          LR        2,A
+       866B : 67                          LISU      7
+       866C : 68                          LISL      0
+       866D : 4C                          LR        A,S
+       866E : 22 40                       OI        H'40'
+       8670 : 5C                          LR        S,A       ; SET STORE MODE LIGHT FLAG
+       8671 : 90 C7                       BR        A23
+       8673 : E2                 A26      XS        2
+       8674 : 52                          LR        2,A       ; RESET STORE MODE FLAG
+       8675 : 67                          LISU      7
+       8676 : 68                          LISL      0
+       8677 : 20 40                       LI        H'40'
+       8679 : EC                          XS        S
+       867A : 5C                          LR        S,A       ; RESET STORE MODE LIGHT FLAG
+       867B : 28 87 02           A18      PI        ATDC
+       867E : 28 87 13                    PI        MTDD
+       8681 : 90 BB                       BR        LA
+       8683 :                    * 'CLEAR' KEY DETECTED
+       8683 : 71                 CLR      LIS       1
+       8684 : F2                          NS        2
+       8685 : 94 08                       BNZ       A13       ; BRANCH IF STORE MODE FLAG
+       8687 : 74                          LIS       4
+       8688 : E7                          XS        7
+       8689 : 84 31                       BZ        A24       ; BRANCH IF DIGIT COUNT IS 4
+       868B : 29 85 B8                    JMP       A9
+       868E : 72                 A13      LIS       2
+       868F : F7                          NS        7
+       8690 : 94 2A                       BNZ       A24       ; BRANCH IF DIGIT COUNT IS 2
+       8692 : 20 FF                       LI        H'FF'
+       8694 : 8E                          ADC                 ; DECREMENT DATA COUNTER
+       8695 : 90 A0                       BR        A25
+       8697 :                    * CHECK IF FUNCTION FLAG SET BEFORE ACCEPTIN
+       8697 : 40                 A27      LR        A,0
+       8698 : 53                          LR        3,A
+       8699 : 70                          LIS       0
+       869A : E7                          XS        7
+       869B : 84 1F                       BZ        A24       ; BRANCH IF DIGIT COUNT IS 0
+       869D : 71                          LIS       1
+       869E : F2                          NS        2
+       869F : 94 1E                       BNZ       A33       ; BRANCH IF STORE MODE FLAG
+       86A1 : 74                          LIS       4
+       86A2 : E7                          XS        7
+       86A3 : 94 05                       BNZ       A28       ; BRANCH IF DIGIT COUNT IS NO
+       86A5 : 6B                          LISL      3
+       86A6 : 5E                 A30      LR        D,A
+       86A7 : 8F FE                       BR7       A30
+       86A9 :                    * LOAD DIGIT TO ADDRESS DISPLAY
+       86A9 : 69                 A28      LISL      1
+       86AA : 4E                          LR        A,D
+       86AB : 5D                          LR        I,A
+       86AC : 5D                          LR        I,A
+       86AD : 4E                          LR        A,D
+       86AE : 5D                          LR        I,A
+       86AF : 5D                          LR        I,A
+       86B0 : 4E                          LR        A,D
+       86B1 : 5D                          LR        I,A
+       86B2 : 43                          LR        A,3
+       86B3 : 5C                          LR        S,A
+       86B4 : 28 87 02                    PI        ATDC      ; ADDRESS DISPLAY TO DC
+       86B7 : 28 87 13                    PI        MTDD      ; MEMORY TO DATA DISPLAY
+       86BA : 37                 A29      DS        7         ; DECREMENT DIGIT COUNT
+       86BB : 29 85 C7           A24      JMP       A3
+       86BE :                    * LOAD DIGIT TO DATA DISPLAY
+       86BE : 72                 A33      LIS       2
+       86BF : F7                          NS        7
+       86C0 : 84 06                       BZ        A35       ; BRANCH IF DIGIT COUNT NOT 2
+       86C2 : 66                          LISU      6
+       86C3 : 6C                          LISL      4         ; CLEAR DATA DISPLAY
+       86C4 : 70                          LIS       0
+       86C5 : 5D                          LR        I,A
+       86C6 : 5C                          LR        S,A
+       86C7 : E7                 A35      XS        7
+       86C8 : 84 F2                       BZ        A24       ; BRANCH IF DIGIT COUNT IS ZE
+       86CA : 6D                          LISL      5         ; DIGIT TO DATA DISPLAY
+       86CB : 4E                          LR        A,D
+       86CC : 5D                          LR        I,A
+       86CD : 43                          LR        A,3
+       86CE : 5C                          LR        S,A
+       86CF : 37                          DS        7
+       86D0 : 90 EA                       BR        A24
+       86D2 :                    * 'MOVE UP' KEY DETECTED
+       86D2 : 71                 MOVU     LIS       1
+       86D3 : F2                          NS        2
+       86D4 : 84 E6                       BZ        A24       ; BRANCH IF NOT IN STORE MODE
+       86D6 : 20 FF                       LI        H'FF'
+       86D8 : 53                          LR        3,A
+       86D9 : 8E                          ADC
+       86DA : 0E                          LR        Q,DC
+       86DB : 8E                          ADC
+       86DC : 11                          LR        H,DC
+       86DD : 07                          LR        QL,A
+       86DE : 0F                          LR        DC,Q
+       86DF : 16                 A12      LM
+       86E0 : 17                          ST
+       86E1 : 20 FD                       LI        H'FD'
+       86E3 : 8E                          ADC
+       86E4 : 33                          DS        3
+       86E5 : 43                          LR        A,3
+       86E6 : EB                          XS        11
+       86E7 : 94 F7                       BNZ       A12
+       86E9 : 16                          LM
+       86EA : 20 2B                       LI        H'2B'
+       86EC : 17                          ST
+       86ED : 90 8D              A17      BR        A18
+       86EF :                    * 'MOVE DOWN" KEY DETECTED
+       86EF : 71                 MOVD     LIS       1
+       86F0 : F2                          NS        2
+       86F1 : 84 C9                       BZ        A24       ; BRANCH IF NOT IN STORE MODE
+       86F3 : 16                          LM
+       86F4 : 50                          LR        0,A
+       86F5 : 20 FE                       LI        H'FE'
+       86F7 : 8E                          ADC
+       86F8 : 40                          LR        A,0
+       86F9 : 17                          ST
+       86FA : 16                          LM
+       86FB : 11                          LR        H,DC
+       86FC : 71                          LIS       1
+       86FD : EB                          XS        11
+       86FE : 94 F0                       BNZ       MOVD
+       8700 : 90 EC                       BR        A17
+       8702 :                    *
+       8702 :                    * ADDRESS DISPLAY TO DC SUBROUTINE
+       8702 :                    *
+       8702 : 66                 ATDC     LISU      6
+       8703 : 6B                          LISL      3
+       8704 : 4E                 A15      LR        A,D
+       8705 : 54                          LR        4,A
+       8706 : 4E                          LR        A,D
+       8707 : 15                          SL        4
+       8708 : E4                          XS        4
+       8709 : 8F 05                       BR7       A36
+       870B : 06                          LR        QU,A
+       870C : 04                          LR        KU,A
+       870D : 0F                          LR        DC,Q
+       870E : 1C                          POP
+       870F : 07                 A36      LR        QL,A
+       8710 : 05                          LR        KL,A
+       8711 : 90 F2                       BR        A15
+       8713 :                    *
+       8713 :                    * MEMORY TO DATA DISPLAY SUBROUTINE
+       8713 :                    *
+       8713 : 6C                 MTDD     LISL      4
+       8714 : 16                          LM
+       8715 : 54                          LR        4,A
+       8716 : 14                          SR        4
+       8717 : 5D                          LR        I,A
+       8718 : 7F                          LIS       15
+       8719 : F4                          NS        4
+       871A : 5C                          LR        S,A
+       871B : 1C                          POP
+       871C :                    *
+       871C :                    * INCREMENT ADDRESS DISPLAY SUBROUTINE
+       871C :                    *
+       871C : 6B                 INAD     LISL      3
+       871D : 4C                 A21      LR        A,S
+       871E : 1F                          INC
+       871F : 15                          SL        4
+       8720 : 14                          SR        4
+       8721 : 5E                          LR        D,A
+       8722 : 94 03                       BNZ       A22       ; BRANCH IF DIGIT WAS NOT 'F'
+       8724 : 8F F8                       BR7       A21       ; BRANCH IF NOT MSD
+       8726 : 1C                 A22      POP
+       8727 :                    *
+       8727 :                    * DECREMENT ADDRESS DISPLAY SUBROUTINE
+       8727 :                    *
+       8727 : 6B                 DEAD     LISL      3
+       8728 : 3C                 A31      DS        S
+       8729 : 4C                          LR        A,S
+       872A : 14                          SR        4
+       872B : 84 04                       BZ        A32       ; BRANCH IF DIGIT WAS NOT ZER
+       872D : 5E                          LR        D,A       ; 15 TO DISPLAY REG.
+       872E : 8F F9                       BR7       A31       ; BRANCH IF NOT MSD
+       8730 : 1C                 A32      POP
+       8731 :                    *
+       8731 :                    * SCAN KEYBOARD SUBROUTINE
+       8731 :                    *
+       8731 : 08                 SCAN     LR        K,P
+       8732 : 0A                          LR        A,IS
+       8733 : 65                          LISU      5
+       8734 : 6F                          LISL      7
+       8735 : 5E                          LR        D,A
+       8736 :                    * LOAD KEY CODE
+       8736 : 20 17              A39      LI        H'17'
+       8738 : 50                          LR        0,A
+       8739 :                    * LOAD FIRST STROBE
+       8739 : 20 FE                       LI        H'FE'
+       873B : 5C                          LR        S,A
+       873C :                    * OUTPUT STROBE
+       873C : 7F                 A40      LIS       15        ; BLANK DISPLAY
+       873D : B1                          OUTS      1
+       873E : 20 C0                       LI        H'C0'
+       8740 : B0                          OUTS      0
+       8741 : 4E                          LR        A,D
+       8742 : B0                          OUTS      0
+       8743 :                    * READ KEYS
+       8743 : 74                          LIS       4
+       8744 : 5C                          LR        S,A
+       8745 : A1                          INS       1
+       8746 : 14                          SR        4
+       8747 : 84 17                       BZ        A43       ; BRANCH IF NO KEY IN THIS CO
+       8749 : 15                          SL        4
+       874A : 91 08              A41      BM        A42       ; BRANCH IF KEY IS IN THIS RO
+       874C :                    * GO TO NEXT ROW IF NOT LAST ROW
+       874C : 30                          DS        0
+       874D : 3C                          DS        S
+       874E : 84 2B                       BZ        A47       ; BRANCH IF LAST ROW IN THIS
+       8750 : 13                          SL        1
+       8751 : 90 F8                       BR        A41
+       8753 :                    * IS THIS FIRST SCAN
+       8753 : 6C                 A42      LISL      4
+       8754 : 71                          LIS       1
+       8755 : EC                          XS        S
+       8756 : 94 26                       BNZ       A48       ; BRANCH IF KBD FLAG NOT SET
+       8758 :                    * RESET KBD FLAG
+       8758 : 5E                          LR        D,A
+       8759 :                    * COMPARE TWO SCANS
+       8759 : 4C                          LR        A,S
+       875A : E0                          XS        0
+       875B : 84 19                       BZ        A46       ; BRANCH IF SCANS ARE THE SAM
+       875D : 90 0F                       BR        A45
+       875F :                    * CHANGE KEY CODE FOR NEXT COLUMN
+       875F : 6E                 A43      LISL      6
+       8760 : 20 FC                       LI        H'FC'
+       8762 : C0                          AS        0
+       8763 : 50                          LR        0,A
+       8764 :                    * SHIFT STROBVE ONE POSITION
+       8764 : 4C                 A44      LR        A,S
+       8765 : 13                          SL        1
+       8766 : 23 01                       XI        1
+       8768 : 5C                          LR        S,A
+       8769 :                    * HAS LAST COLUMN BEEN SCANNED ALREADY
+       8769 : 21 40                       NI        H'40'
+       876B : 94 D0                       BNZ       A40       ; BRANCH IF NOT LAST STROBE
+       876D :                    * STROBE 'FF' IN KEY CODE REGISTER
+       876D : 20 FF              A45      LI        H'FF'
+       876F : 50                          LR        0,A
+       8770 :                    * RESET KBD FLAG
+       8770 : 6C                          LISL      4
+       8771 : 70                          LIS       0
+       8772 : 5C                          LR        S,A
+       8773 : 90 0C                       BR        A51
+       8775 :                    * RESTORE ISAR
+       8775 : 6F                 A46      LISL      7
+       8776 : 4C                          LR        A,S
+       8777 : 0B                          LR        IS,A
+       8778 : 09                          LR        P,K
+       8779 : 1C                          POP
+       877A :                    * GO TO NEXT ROW
+       877A : 6E                 A47      LISL      6
+       877B : 90 E8                       BR        A44
+       877D :                    * SET KBD FLAG
+       877D : 5E                 A48      LR        D,A
+       877E :                    * STORE KEY CODE OF FIRST SCAN
+       877E : 40                          LR        A,0
+       877F : 5E                          LR        D,A
+       8780 :                    * LOAD COUNTERS FOR BOUNCE TIME OF 28MS
+       8780 : 28 87 99           A51      PI        DISP      ; RESTORE DISPLAY
+       8783 : 65                          LISU      5
+       8784 : 6A                          LISL      2
+       8785 : 7B                          LIS       11
+       8786 : 5E                          LR        D,A
+       8787 : 20 FF              A49      LI        H'FF'
+       8789 : 5C                          LR        S,A
+       878A : 3C                 A50      DS        S
+       878B : 94 FE                       BNZ       A50       ; BRANCH IF COUNTER 1 NOT ZER
+       878D : 6A                          LISL      2
+       878E : 3E                          DS        D
+       878F : 94 F7                       BNZ       A49       ; BRANCH IF COUNTER 2 NOT ZER
+       8791 : 6C                          LISL      4
+       8792 : 71                          LIS       1
+       8793 : FC                          NS        S
+       8794 : 84 E0                       BZ        A46       ; BRANCH IF NOT KBD FLG
+       8796 : 6E                          LISL      6
+       8797 : 90 9E                       BR        A39
+       8799 :                    *
+       8799 :                    * DISPLAY SUBROUTINE
+       8799 :                    *
+       8799 : 66                 DISP     LISU      6
+       879A : 6F                          LISL      7
+       879B : 41                          LR        A,1
+       879C : 5E                          LR        D,A       ; SAVE REG. 1
+       879D : 40                          LR        A,0
+       879E : 5C                          LR        S,A       ; SAVE REG. 0
+       879F : 67                          LISU      7
+       87A0 : 68                          LISL      0
+       87A1 : 71                          LIS       1
+       87A2 : 50                          LR        0,A
+       87A3 : 4C                          LR        A,S
+       87A4 : 51                          LR        1,A
+       87A5 : 66                          LISU      6
+       87A6 : 6D                          LISL      5
+       87A7 : 41                 A52      LR        A,1
+       87A8 : 23 FF                       XI        H'FF'
+       87AA : B0                          OUTS      0
+       87AB : 4E                          LR        A,D
+       87AC : 18                          COM
+       87AD : 15                          SL        4
+       87AE : 14                          SR        4
+       87AF : B1                          OUTS      1
+       87B0 : A0                          INS       0
+       87B1 : E0                          XS        0
+       87B2 : B0                          OUTS      0
+       87B3 : 40                          LR        A,0
+       87B4 : 13                          SL        1
+       87B5 : 50                          LR        0,A
+       87B6 : 8F F0                       BR7       A52
+       87B8 : 6E                          LISL      6
+       87B9 : 4D                          LR        A,I
+       87BA : 50                          LR        0,A       ; RESTORE REG. 0
+       87BB : 4C                          LR        A,S
+       87BC : 51                          LR        1,A       ; RESTORE REG. 1
+       87BD : 1C                          POP
+       87BE :                    *
+       87BE :                    * SONG SUBROUTINE
+       87BE :                    *     LOAD STARTING LOCATION OF SONG CONSTAN
+       87BE :                    *     LOAD TEMPO INTO R7
+       87BE :                    *
+       87BE : 20 40              SONG     LI        H'40'
+       87C0 : 56                          LR        6,A       ; SET NOTE FLAG
+       87C1 : 47                          LR        A,7
+       87C2 : 55                          LR        5,A       ; STORE TEMPO CONSTANT IN WOR
+       87C3 : 16                          LM
+       87C4 : 54                          LR        4,A       ; STORE NOTE DURATION CONSTAN
+       87C5 : 51                          LR        1,A       ; RETAIN NOTE DURATION CONSTA
+       87C6 : F1                          NS        1
+       87C7 : 84 37                       BZ        FINS      ; END OF SONG IF NOTE DURATIO
+       87C9 : 16                          LM
+       87CA : 53                          LR        3,A       ; RETAIN NOTE PITCH CONSTANT
+       87CB : 23 7F                       XI        H'7F'
+       87CD : 94 02                       BNZ       A2        ; BRANCH IF NOT A REST
+       87CF : 56                          LR        6,A       ; CLEAR NOTE FLAG
+       87D0 : 20 FF              A2       LI        H'FF'
+       87D2 : 59                          LR        9,A       ; LOAD PITCH COUNTER A
+       87D3 : 76                          LIS       6
+       87D4 : 58                          LR        8,A       ; LOAD PITCH COUNTER B
+       87D5 : 43                 A55      LR        A,3
+       87D6 : 52                          LR        2,A       ; STORE NOTE PITCH CONSTANT I
+       87D7 : A8                          INS       8
+       87D8 : E6                          XS        6
+       87D9 : B8                          OUTS      8         ; TOGGLE OUTPUT PORT
+       87DA : 39                 A11      DS        9
+       87DB : 94 04                       BNZ       A8        ; BRANCH IF PITCH COUNTER A N
+       87DD : 38                          DS        8
+       87DE : 84 06                       BZ        A7        ; BRANCH IF PITCH COUNTER B I
+       87E0 : 32                 A8       DS        2         ; DECREMENT NOTE PITCH CONSTA
+       87E1 : 81 F8                       BP        A11       ; BRANCH IF NOTE PITCH CONSTA
+       87E3 : 90 F1                       BR        A55       ; GO TO TOGGLE OF OUTPUT
+       87E5 : 32                 A7       DS        2         ; DECR. NOTE PITCH CONSTANT T
+       87E6 : 32                          DS        2
+       87E7 : 76                          LIS       6
+       87E8 : 58                          LR        8,A       ; RELOAD PITCH COUNTER B
+       87E9 : 34                          DS        4         ; DECREMENT NOTE DURATION CON
+       87EA : 94 08                       BNZ       A10       ; BRANCH IF NOTE DURATION CON
+       87EC : 41                          LR        A,1
+       87ED : 54                          LR        4,A       ; RELOAD NOTE DURATION CONSTA
+       87EE : 35                          DS        5         ; DECREMENT REMPO CONSTANT
+       87EF : 94 EA                       BNZ       A11       ; BRANCH IF TEMPO CONSTANT NO
+       87F1 : 90 CC                       BR        SONG      ; GO TO NEXT NOTE
+       87F3 : 71                 A10      LIS       1
+       87F4 : E5                          XS        5
+       87F5 : 94 E4                       BNZ       A11       ; BRANCH IF TEMPO CONSTANT NO
+       87F7 : 32                          DS        2         ; DECR. NOTE PITCH CONSTANT T
+       87F8 : 71                          LIS       1
+       87F9 : E4                          XS        4
+       87FA : 94 DF                       BNZ       A11       ; BRANCH IF NOTE DURATION CON
+       87FC : 56                          LR        6,A       ; CLEAR NOTE FLAG TO PROVIDE
+       87FD : 90 DC                       BR        A11
+       87FF : 1C                 FINS     POP
+       8800 :                             END
