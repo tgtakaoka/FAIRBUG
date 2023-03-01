@@ -75,9 +75,9 @@ BGLP     LR        IS,A
 BGND     JMP       STRT      ; TO CONVERSATIONA
          NOP
 ;*
-TBX      DC        H'EA'     ; 1200 BAUD
-         DC        H'A4'     ; 300 BAUD
-         DC        6         ; 110 BAUD
+TBX      DB        H'EA'     ; 1200 BAUD
+         DB        H'A4'     ; 300 BAUD
+         DB        6         ; 110 BAUD
 EDUL     JMP       (EDUX+2)
 ;*BOOTSTRAP FORMAT PUNCH SUBROUTINE
 ;*   START ADDRESS IN DC ON ENTRY
@@ -398,30 +398,30 @@ COR7     LR       FCNT,A
 ;*ROUTINE TO FETCH DIRECTIVE,THEN CALL PARAME
 ;*   THEN GO TO CORRECT PROCESS ROUTINE THRU
 AL1      function addr, addr & H'FF'
-TBLS     DC     AL1(A1-A)    ; ACCUMULATOR DIS
-         DC     AL1(B-A)     ; BINARY DUMP
-         DC     AL1(C-A)     ; CHANGE FIELD
-         DC     AL1(D-A)     ; DC DISPLAY
-         DC     AL1(E-A)     ; EXAMINE
-         DC     AL1(F-A)     ; FORMATTED PUNCH
-         DC     AL1(G-A)     ; GO TO
-         DC     AL1(H-A)     ; HIGH SPEED LOAD
-         DC     AL1(I-A)     ; ISAR DISPLAY
-         DC     AL1(J-A)     ; 8 BIT PROM PUNC
-         DC     AL1(-1)      ; K
-         DC     AL1(L-A)     ; LOAD
-         DC     AL1(M-A)     ; MEMORY DISPLAY
-         DC     AL1(N-A)     ; NEXT DISPLAY
-         DC     AL1(O-A)     ; PORT DISPLAY
-         DC     AL1(P-A)     ; PC DISPLAY
-         DC     AL1(-1)      ; Q
-         DC     AL1(R-A)     ; REGISTER DISPLA
-         DC     AL1(S-A)     ; STATUS DISPLAY
-         DC     AL1(T-A)     ; CLEAR BREAK POI
-         DC     AL1(U-A)     ; BREAKPOINT
-         DC     AL1(V-A)     ; MOVE BLOCK
-         DC     AL1(S-A)     ; W (STATUS) DISP
-HXX      DC     AL1(X-A)     ; HEX ARITHMETIC
+TBLS     DB     AL1(A1-A)    ; ACCUMULATOR DIS
+         DB     AL1(B-A)     ; BINARY DUMP
+         DB     AL1(C-A)     ; CHANGE FIELD
+         DB     AL1(D-A)     ; DC DISPLAY
+         DB     AL1(E-A)     ; EXAMINE
+         DB     AL1(F-A)     ; FORMATTED PUNCH
+         DB     AL1(G-A)     ; GO TO
+         DB     AL1(H-A)     ; HIGH SPEED LOAD
+         DB     AL1(I-A)     ; ISAR DISPLAY
+         DB     AL1(J-A)     ; 8 BIT PROM PUNC
+         DB     AL1(-1)      ; K
+         DB     AL1(L-A)     ; LOAD
+         DB     AL1(M-A)     ; MEMORY DISPLAY
+         DB     AL1(N-A)     ; NEXT DISPLAY
+         DB     AL1(O-A)     ; PORT DISPLAY
+         DB     AL1(P-A)     ; PC DISPLAY
+         DB     AL1(-1)      ; Q
+         DB     AL1(R-A)     ; REGISTER DISPLA
+         DB     AL1(S-A)     ; STATUS DISPLAY
+         DB     AL1(T-A)     ; CLEAR BREAK POI
+         DB     AL1(U-A)     ; BREAKPOINT
+         DB     AL1(V-A)     ; MOVE BLOCK
+         DB     AL1(S-A)     ; W (STATUS) DISP
+HXX      DB     AL1(X-A)     ; HEX ARITHMETIC
 STRT     LR        A,11      ; FREE R11
          LR        QL,A
 STR1     PI        TTCR      ; WRITE CR/LF
