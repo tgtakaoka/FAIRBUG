@@ -1,7 +1,7 @@
-*FAIRBUG       +      EDUCATOR
-*R.VATERT             J.EFSTATHIOU
-*FOR 2K PSU
-*9/28/77
+;*FAIRBUG       +      EDUCATOR
+;*R.VATERT             J.EFSTATHIOU
+;*FOR 2K PSU
+;*9/28/77
 XX       ORG       H'8000'
 A        EQU       (A1-1)
 HIBY     EQU       H'82'     ; HI 8 BIT ADD
@@ -38,7 +38,7 @@ OPOR     EQU       8         ; SERIAL PORT,OUT
 IPOR     EQU       8         ; SERIAL PORT,INP
 PSTS     EQU       8         ; PARALLEL PORT,S
 PPRT     EQU       9         ; PARALLEL PORT,D
-*LOOP TO SAVE R0-R15 IN MEMORY
+;*LOOP TO SAVE R0-R15 IN MEMORY
 BGL1     LIS       0
 BGLP     LR        IS,A
          LR        A,S
@@ -74,15 +74,15 @@ BGLP     LR        IS,A
          PI        TTD       ; DELAY FOR KEY BD
 BGND     JMP       STRT      ; TO CONVERSATIONA
          NOP
-*
+;*
 TBX      DC        H'EA'     ; 1200 BAUD
          DC        H'A4'     ; 300 BAUD
          DC        6         ; 110 BAUD
 EDUL     JMP       (EDUX+2)
-*BOOTSTRAP FORMAT PUNCH SUBROUTINE
-*   START ADDRESS IN DC ON ENTRY
-*   END ADDRESS IN R6-7 ON ENTRY
-*WRITE BLANK LEADER
+;*BOOTSTRAP FORMAT PUNCH SUBROUTINE
+;*   START ADDRESS IN DC ON ENTRY
+;*   END ADDRESS IN R6-7 ON ENTRY
+;*WRITE BLANK LEADER
 FPUN     LR        A,EAHI
          COM
          LR        EAHI,A    ; NOW 1'S COMPLIM
@@ -103,13 +103,13 @@ FPN1     LIS       0
          BNZ       FPN1      ; CONTINUE BKANKI
          XS        HFLG
          BP        FCON      ; THIS WAS LEADER
-*TRAILER PUNCHED NOW FINISH
+;*TRAILER PUNCHED NOW FINISH
          LI        H'94'
          LR        CHRS,A
          PI        TTYO
          BR        BGSV
-*
-*WRITE STARTING ADDRESS
+;*
+;*WRITE STARTING ADDRESS
 FCON     LI        H'FF'
          LR        CHRS,A
          PI        TTYO
@@ -133,14 +133,14 @@ FCON     LI        H'FF'
          LI        24
          LR        HFLG,A    ; SET TO 24
          BR        FLOP
-****************
+;****************
          BR        BGSV      ; START FAIRBUG
-****************
+;****************
 FLOP     PI        FOP1      ; WRITE 2 CHR FR
          LR        H,DC
          DS        HFLG      ; COUNT-1
          BNZ       FLOP      ; NOT 24 YET
-*NOW CHECKSUM
+;*NOW CHECKSUM
          LR        A,CKSM
          COM
          INC
@@ -149,7 +149,7 @@ FLOP     PI        FOP1      ; WRITE 2 CHR FR
          LR        HFLG,A    ; FLAG PLUS FOR 2
          PI        FOP2      ; WRITE 2 CHAR CK
          PI        TTCR      ; TYPE CR/LF
-*NOW CHECK IF ALL MEMORY IS PUNCHED,HI MUST
+;*NOW CHECK IF ALL MEMORY IS PUNCHED,HI MUST
          LR        A,11      ; LAST LOW ADDRES
          AS        EALO      ; ENDING LOW ADDR
          LR        A,10      ; LAST HI ADDRESS
@@ -157,9 +157,9 @@ FLOP     PI        FOP1      ; WRITE 2 CHR FR
          AS        EAHI
          BNC       FCON      ; NOT DONE YET
          LR        QL,A      ; ZERO
-*
-*NOW WROTE ZERO RECORD PRIOR TO TRAILER
-*
+;*
+;*NOW WROTE ZERO RECORD PRIOR TO TRAILER
+;*
          LI        H'3A'     ; COLON
          LR        CHRS,A
          PI        TTYO      ; PUNCH VCOLON
@@ -170,9 +170,9 @@ HERE     PI        FOP2      ; PUNCH 2 ZERO CHAR
          BNZ       HERE      ; REPEAT IF NOT 0
          DS        HFLG      ; SET TO -1
          BR        (FPUN+2)  ; TRAILER
-*TABLE OF DEFAULT DELAY COUNTERS
-*SAVE ROUTINE   TO SAVE THE INITIAL STATE OF
-*     RESTORE SUBROUTINE WILL PUT IT BACK
+;*TABLE OF DEFAULT DELAY COUNTERS
+;*SAVE ROUTINE   TO SAVE THE INITIAL STATE OF
+;*     RESTORE SUBROUTINE WILL PUT IT BACK
 BGSV     DI                  ; DISABLE INTERRU
          LR        8,A       ; A SAVED IN R8
          LR        A,IS      ; ISAR TO A
@@ -187,7 +187,7 @@ BGSV     DI                  ; DISABLE INTERRU
          LR        A,11
          LR        S,A       ; R11 TO R77
          LR        H,DC      ; DC TO R 10-11
-*CHECK ADDRESS OF SCRATCH RAM
+;*CHECK ADDRESS OF SCRATCH RAM
          DCI       MHI
          LM
          COM
@@ -218,7 +218,7 @@ BG1      LR        A,10
          LR        A,S
          LR        9,A
          JMP       BGL1      ; TO FINISH SAVE
-* RESTIRE ROUTINE    RESET REGISTERS THEN RE
+;* RESTIRE ROUTINE    RESET REGISTERS THEN RE
 REST     LI        H'E7'
          LR        QL,A
          LR        DC,Q      ; SET DC TO RESTO
@@ -241,7 +241,7 @@ REST     LI        H'E7'
          LM
          LR        QL,A      ; DC1 NOW IN Q
          LIS       0
-*LOOP TO RESTORE R0-R13 FROM SCRATCH RAM
+;*LOOP TO RESTORE R0-R13 FROM SCRATCH RAM
 LOUP     LR        IS,A
          LM
          LR        S,A       ; R0-R13 RESTORE
@@ -260,7 +260,7 @@ LOUP     LR        IS,A
          LR        QL,A
          LR        A,9       ; RESTORE R14-15
          LR        QU,A
-*NOW DO SR,ISAR,9,A
+;*NOW DO SR,ISAR,9,A
          LR        A,D       ; GET STATUS
          LR        9,A       ; SR TO J
          LR        W,J       ; STATUS RESTORED
@@ -270,12 +270,12 @@ LOUP     LR        IS,A
          LR        IS,A      ; ISAR RESTORED
          LR        A,8       ; RESTORE A
          POP                 ; TO USER
-*SUBROUTINE TO OUTBYTE 1 BYTE AS 2  4 BIT AS
-*CKSM IS ACCUMLATED
-*HFLG MUST BE POSITIVE NUMBER
+;*SUBROUTINE TO OUTBYTE 1 BYTE AS 2  4 BIT AS
+;*CKSM IS ACCUMLATED
+;*HFLG MUST BE POSITIVE NUMBER
 FOP1     LM
          LR        QL,A
-*ENTRY WITH CHARACTER IN REG SAVE
+;*ENTRY WITH CHARACTER IN REG SAVE
 FOP2     LR        K,P       ; SAVE
 FLP1     LR        A,HFLG
          COM                 ; SET STATUS
@@ -284,7 +284,7 @@ FLP1     LR        A,HFLG
          BM        FHI       ; DO HI 4 BITS IF
 FLO      SL        4         ; LOSE HI BITS
 FHI      SR        4         ; MOVE TO LO 4 BI
-*CONVERT TO ASC 0='30',9='39',A='41',F='46'
+;*CONVERT TO ASC 0='30',9='39',A='41',F='46'
          AI        H'30'
          CI        H'39'
          BP        FINT      ; NOT A-F
@@ -293,20 +293,20 @@ FINT     LR        CHRS,A
          PI        TTYO      ; TYPE FRAME
          DS        HFLG
          BM        FLP1      ; DO LOW HALF WOR
-*DO CHECKSUM
+;*DO CHECKSUM
          LR        A,QL      ; LAST BYTE OUTPU
          AS        CKSM      ; ADD TO PROIR CK
          LR        CKSM,A    ; SAVE UPDATED CK
          PK                  ; RETURN FROM K R
-*FETCH PARAMETERS AFTER LEGIT CODE IS IN
-*MAX FIELD 1 AND 2 IS 4 HEX DIGITS
-*MAX FIELD 3 IS 1 HEX DIGIT
+;*FETCH PARAMETERS AFTER LEGIT CODE IS IN
+;*MAX FIELD 1 AND 2 IS 4 HEX DIGITS
+;*MAX FIELD 3 IS 1 HEX DIGIT
 FECH     LIS       3
          LR        FCNT,A    ; PARAMETER COUNT
          LR        IS,A      ; ISAR=3
 FA       LIS       4
          LR        CC,A      ; CHAR CNT=4
-*READ CHARACTER
+;*READ CHARACTER
 FB       PI        TTYI      ; GET CHAR
          NI        H'7F'
          LR        7,A
@@ -322,7 +322,7 @@ FB       PI        TTYI      ; GET CHAR
          BZ        CORT
          CI        H'5B'     ; KILL CHAR?
          BZ        STR1      ; KILL INPUT
-*MUST BE HEX 0-9, OR A-F
+;*MUST BE HEX 0-9, OR A-F
          CI        H'2F'     ; LESS THAN ZERO
          BP        FB        ; ERROR IGNORE
          CI        H'46'     ; F?
@@ -335,7 +335,7 @@ FB       PI        TTYI      ; GET CHAR
          AI        H'F9'
 FOK      DS        CC
          BM        FB        ; FULL FIELD IGNO
-*ZERO LO 4 BITS,THEN ADD THIS DIGIT
+;*ZERO LO 4 BITS,THEN ADD THIS DIGIT
          LR        2,A
          LR        A,S
          SL        4
@@ -350,11 +350,11 @@ FOK      DS        CC
          BR        COR7      ; PARAMETERS FULL
 CORN     LR        9,A
          BR        CORT
-*CORRECT HEX FIELD ,RIGHT JUSTIFY
-*   IF AB0C THEN 0ABC
-*IF ABCD THEN IT IS OK
-*   IF A00 THEN 000A
-*IF   AB00 THEN 00AB
+;*CORRECT HEX FIELD ,RIGHT JUSTIFY
+;*   IF AB0C THEN 0ABC
+;*IF ABCD THEN IT IS OK
+;*   IF A00 THEN 000A
+;*IF   AB00 THEN 00AB
 CORE     LIS       H'D'
          LR        7,A
 CORT     LIS       4
@@ -395,8 +395,8 @@ COR8     LR       A,FCNT
          AI       4
 COR7     LR       FCNT,A
          BR       RTN
-*ROUTINE TO FETCH DIRECTIVE,THEN CALL PARAME
-*   THEN GO TO CORRECT PROCESS ROUTINE THRU
+;*ROUTINE TO FETCH DIRECTIVE,THEN CALL PARAME
+;*   THEN GO TO CORRECT PROCESS ROUTINE THRU
 AL1      function addr, addr & H'FF'
 TBLS     DC     AL1(A1-A)    ; ACCUMULATOR DIS
          DC     AL1(B-A)     ; BINARY DUMP
@@ -428,7 +428,7 @@ STR1     PI        TTCR      ; WRITE CR/LF
          LI        C'?'      ; PROMPT CHARACTE
          LR        CHRS,A
          PI        TTYO
-*READ INPUT CHARACTER
+;*READ INPUT CHARACTER
 READ     PI        TTYI
          LR        3,A       ; SAVE CHAR
          PI        TTYO      ; ECHO CHAR
@@ -445,13 +445,13 @@ READ     PI        TTYI
 RPTC     LR        KL,A      ; SAVE INDEX IN R
          INC                 ; GET STATUS
          BZ        STR1      ; INVALID CONTROL
-*NOW INPUT PARAMETERS IF ANY
+;*NOW INPUT PARAMETERS IF ANY
          JMP       FECH
 RTN      LR        A,QL
          LR        11,A      ; RESTORE R11
-*TEST FOR 2 OR 3 PARAMETERS
-*   MAKE LO ADDRESS START ON 8 BYTE BOUNDRY
-*  MAKE HI ADDRESS END ON 8 BYTE BOUNDRY
+;*TEST FOR 2 OR 3 PARAMETERS
+;*   MAKE LO ADDRESS START ON 8 BYTE BOUNDRY
+;*  MAKE HI ADDRESS END ON 8 BYTE BOUNDRY
          LIS       2
          NS        FCNT
          BZ        RTN1      ; NOT 2 OR 3 PARA
@@ -470,7 +470,7 @@ NHX      CI        (V-A)
          LR        11,A
          LR        A,3
          LR        10,A
-*CALC ADDRESS TO GET TO PROCESS ROUTINE
+;*CALC ADDRESS TO GET TO PROCESS ROUTINE
 RTN1     LR        A,KL
          AI        LOBY      ; LO 8 BIT ADDRES
          LR        KL,A
@@ -480,18 +480,18 @@ RTN1     LR        A,KL
          LR        P,K
          LR        A,QU      ; HI ADDRESS IF N
          POP
-*MOVE MEMORY BLOCK
-*  TO ACCOMPLISH,DO  MXXXX WHERE XXXX IS DE
-*                    VSSSS-EEEE WHERE SSSS I
-*              AND EEEE IS SOURCE ENDING ADD
-*INPUT
-*  R10-11  =DESTINATION START ADDRESS
-*  R3-4     =SOURCE START ADDDRESS
-*  R5-6    =SOURCE END ADDRESS
-*WORK REGISTERS
-*  R10-11   =CURRENT SOURCE BYTE ADDRESS
-*  R5-6     =SOURCE START IF MOVING FROM END
-*           =SOURCE END ADDRESS IF MOVE STAR
+;*MOVE MEMORY BLOCK
+;*  TO ACCOMPLISH,DO  MXXXX WHERE XXXX IS DE
+;*                    VSSSS-EEEE WHERE SSSS I
+;*              AND EEEE IS SOURCE ENDING ADD
+;*INPUT
+;*  R10-11  =DESTINATION START ADDRESS
+;*  R3-4     =SOURCE START ADDDRESS
+;*  R5-6    =SOURCE END ADDRESS
+;*WORK REGISTERS
+;*  R10-11   =CURRENT SOURCE BYTE ADDRESS
+;*  R5-6     =SOURCE START IF MOVING FROM END
+;*           =SOURCE END ADDRESS IF MOVE STAR
 MOVE     LR        A,10      ; DESTINATION HI
          COM
          INC
@@ -510,7 +510,7 @@ MBY2     LR        A,11
          INC
          AS        4
          BP        MBGN
-*CALC LENGTH OF BLOCK
+;*CALC LENGTH OF BLOCK
 MEND     LR        A,3
          COM
          LR        1,A
@@ -530,14 +530,14 @@ MXX      AS        11
          AS        5
          AS        10
          LR        10,A
-*MOVE TO DC THEN IMCREMENT TO ADD 1 TO LENG
+;*MOVE TO DC THEN IMCREMENT TO ADD 1 TO LENG
          LR        DC,H
-*MOVE SOURCE START ADDRESS TO R10-11
+;*MOVE SOURCE START ADDRESS TO R10-11
          LR        A,5
          LR        10,A
          LR        A,6
          LR        11,A
-*NOW MOVE SOURCE START TO R5-6 FOR END COMPA
+;*NOW MOVE SOURCE START TO R5-6 FOR END COMPA
          LR        A,3
          LR        5,A
          LR        A,4
@@ -554,7 +554,7 @@ MLOP     LR        H,DC      ; SAVE ADDRESS FO
          ADC
          XDC
          ADC
-*COMPARE FOR ADDRESS END
+;*COMPARE FOR ADDRESS END
          LR        A,10
          XS        5
          BNZ       MLOP
@@ -562,9 +562,9 @@ MLOP     LR        H,DC      ; SAVE ADDRESS FO
          XS        6
          BNZ       MLOP
 BXX      JMP       STRT      ; ALL DONE
-*BREAKPOINT----STORE PK IN USER MEMORY +CHAN
-*              ADDTRSS IN FAIRBUG
-*GET BYTE FROM MEMORY AND SAVE ADDRESS AND
+;*BREAKPOINT----STORE PK IN USER MEMORY +CHAN
+;*              ADDTRSS IN FAIRBUG
+;*GET BYTE FROM MEMORY AND SAVE ADDRESS AND
 BRAK     LI        H'E0'     ; SCRATCH MEM LO
          LR        QL,A
          LR        DC,Q
@@ -574,17 +574,17 @@ BRAK     LI        H'E0'     ; SCRATCH MEM LO
          LR        A,4
          LR        11,A
          ST
-*NOW FETCH USER BYTE
+;*NOW FETCH USER BYTE
          XDC
          LR        DC,H
          LM
          XDC
          ST
-*NOW STORE PK IN MEMORY
+;*NOW STORE PK IN MEMORY
          LR        DC,H
          LIS       12
          ST
-*NOW CHANGE USER K TO RESTORE ADDRESS
+;*NOW CHANGE USER K TO RESTORE ADDRESS
          LI        H'FB'
          LR        QL,A
          LR        DC,Q
@@ -593,7 +593,7 @@ BRAK     LI        H'E0'     ; SCRATCH MEM LO
          LI        H'AF'
          ST
          BR        BXX       ; TO START
-*RESTORE BYTE TO USER MEMORY
+;*RESTORE BYTE TO USER MEMORY
 TT       LI        H'E0'
          LR        QL,A
          LR        DC,Q
@@ -605,11 +605,11 @@ TT       LI        H'E0'
          LR        DC,H      ; USER ADDRESS
          ST
          BR        BXX       ; TO START
-*HEX ARITHMETIC
+;*HEX ARITHMETIC
 HEX      LR        A,9
          CI        C'+'
          BZ        PLUS
-*COMPLIMENT BEFORE ADD=SUBTRACT
+;*COMPLIMENT BEFORE ADD=SUBTRACT
          LR        A,6
          COM
          INC                 ; 2'S COMPLIMENT
@@ -620,26 +620,26 @@ HEX      LR        A,9
          LR        W,J
          LNK
          LR        5,A
-*ADDITION
+;*ADDITION
 PLUS     LR        A,4
          AS        6
          LR        4,A
          LR        A,3
          LNK
          AS        5
-*NOW WRITE TO DISPLAY RESULTS
+;*NOW WRITE TO DISPLAY RESULTS
          LR        QL,A
          PI        FOP2
          LR        A,4
          LR        QL,A
 V        PI        FOP2
          BR        BXX
-*PRINT ACCUMULATOR
+;*PRINT ACCUMULATOR
 A1       LIS       8
 X        BR        I1
-*CLEAR BREAK POINT ENTRY
+;*CLEAR BREAK POINT ENTRY
 T        BR        TT
-*CHANGE LAST USED FIELD
+;*CHANGE LAST USED FIELD
 C        DS        FCNT
          BM        (V+3)     ; NO PARAMETERS S
          LR        A,FLG
@@ -681,21 +681,21 @@ C5       LI        H'20'     ; BLANK
 C55      LR        A,6
          LR        QL,A
          BR        C5
-*DISPLAY DC
+;*DISPLAY DC
 D        LR        10,A      ; HI STORE ADDRES
          LI        H'EB'
          BR        P1
-*EXAMINE THIS ADDRESS
+;*EXAMINE THIS ADDRESS
 E        LIS       PP
          XS        FLG
          BZ        P2        ; PC OR DC
          BR        N1
-*FORMATTED PUNCH,FOR BOOT LOAD INPUT
+;*FORMATTED PUNCH,FOR BOOT LOAD INPUT
 F        JMP       FPUN
-*GO TO
+;*GO TO
 G        DS        FCNT
          BM        G1
-*GET NEW PC FROM PARAMETERS
+;*GET NEW PC FROM PARAMETERS
          LR        10,A
          LI        H'E7'
          LR        11,A      ; SET PC MEMORY A
@@ -705,7 +705,7 @@ G        DS        FCNT
          LR        A,4
          ST                  ; PC LOWER
 G1       JMP       REST      ; RESTORE REGISTE
-*ISAR DISPLAY
+;*ISAR DISPLAY
 I        LI        60        ; REGISTER OF ISA
 I1       LR        4,A
          LR        6,A
@@ -715,17 +715,17 @@ I1       LR        4,A
          LIS       RR
          LR        FLG,A
          BR        R23
-*HIGH SPEED READER LOAD ROUTINE
+;*HIGH SPEED READER LOAD ROUTINE
 H        JMP       HIGH
-*PORT PRINT
+;*PORT PRINT
 O        LIS       OO        ; CODE FOR PORT
          BR        R1        ; PRINT PORT DATA
-*BOOT LOAD
+;*BOOT LOAD
 L        JMP       LOAD
-*MEMORY PRINT
+;*MEMORY PRINT
 M        LIS       MM
          BR        R1
-*NEXT--DISPLAY NEXT MEMORY OR REGISTER LOC
+;*NEXT--DISPLAY NEXT MEMORY OR REGISTER LOC
 N        LR        DC,H
          LIS       1
          ADC
@@ -737,7 +737,7 @@ N1       LR        A,10
          LR        4,A
          LR        6,A
          BR        R22
-*PC PRINTD
+;*PC PRINTD
 P        LR        10,A
          LI        H'E7'
 P1       AS        4         ; ADD PC0 OR PC1
@@ -752,30 +752,30 @@ P2       LR        DC,H
          PI        FOP1      ; OP HEX WD,2 CHA
 POUT     PI        FOP1      ; OP HEX WD,2 CHA
 P3       JMP       STRT
-*S-FETCH STATUS REGISTER
+;*S-FETCH STATUS REGISTER
 S        LI        62        ; LOC OF STATUS S
          BR        I1
-*PUNCH BINARY TAPE FOR PROM
+;*PUNCH BINARY TAPE FOR PROM
 B        LIS       1
          LR        QL,A
          BR        PPUN
-*8 BIT PROM ENTRY
+;*8 BIT PROM ENTRY
 J        LIS       0         ; CODE FOR 8 BIT=
          BR        (B+1)
-*BREAKPOINT ENTRY FROM TABLE
+;*BREAKPOINT ENTRY FROM TABLE
 U        JMP       BRAK      ; TEMP NOP
-*R-ENTRY FOR REGISTER DISPLAY
+;*R-ENTRY FOR REGISTER DISPLAY
 R        LI        RR
 R1       LR        FLG,A     ; SET TO R OR M
          DS        FCNT
          BM        P3        ; NO PARAMETERS G
          BNZ       R2
-*MAKE HI ADDR=LO ADDR
+;*MAKE HI ADDR=LO ADDR
 R3       LR        A,3
          LR        5,A
          LR        A,4
          LR        6,A
-*PRINT CR LF BLANK BLANK (R OR M) BLANK XXXX
+;*PRINT CR LF BLANK BLANK (R OR M) BLANK XXXX
 R2       PI        TTCR      ; WRITE CR/LF
 R22      LI        H'20'     ; BLANK
          LR        CHRS,A
@@ -793,7 +793,7 @@ R22      LI        H'20'     ; BLANK
 R23      LI        C'='
          LR        CHRS,A
          PI        TTYO
-*NOW PRINT DATA
+;*NOW PRINT DATA
 R4       LR        A,3
          LR        10,A
          LR        A,4
@@ -803,31 +803,31 @@ R4       LR        A,3
          BZ        PIO       ; GO TO PORT ROUT
          CI        RR        ; TEST FOR REGIST
          BNZ       R5        ; MEMORY LOC
-*
-*REGISRER FETCH IS IT IN SCRATCH OR TEMP MEM
+;*
+;*REGISRER FETCH IS IT IN SCRATCH OR TEMP MEM
          LR        A,4
          LR        IS,A
          LR        A,IS
          CI        15
          BP        R44       ; NOY REGISTER AD
-*LOAD ISAR AND FETCH
+;*LOAD ISAR AND FETCH
          LR        A,S
          LR        QL,A
 R76      PI        FOP2
          BR        R77
-*UPDATE REG 0-15 ADDRESS TO MEM LOC
+;*UPDATE REG 0-15 ADDRESS TO MEM LOC
 R44      AI        H'EF'     ; LO RAM-START OF
          LR        11,A
          LR        A,QU      ; HI ADDRESS
          LR        10,A      ; HI RAM ADDRESS
-*FETCH DATA FROM MEMORY
+;*FETCH DATA FROM MEMORY
 R5       LR        DC,H
-*DATA NOW IN NOW PRINT
+;*DATA NOW IN NOW PRINT
 R6       PI        FOP1      ; TYPE 2 CHAR FRO
 R77      LI        H'20'     ; BLANK
          LR        CHRS,A
          PI        TTYO      ; BLANK
-*CHECK FOR END
+;*CHECK FOR END
          LR        A,4
          LR        11,A      ; SAVE FOR REENTR
          XS        6
@@ -837,7 +837,7 @@ R77      LI        H'20'     ; BLANK
          XS        5
          BZ        P3
 R7       LR        A,4
-*UPDATE FOR NEXT WORD,LINE HAS MAX OF 8
+;*UPDATE FOR NEXT WORD,LINE HAS MAX OF 8
          INC
          LR        4,A       ; INCREMENT ADDRE
          LR        A,3
@@ -847,10 +847,10 @@ R7       LR        A,4
          NS        4
          BZ        R2        ; NEW LINE
          BR        R4        ; CONTINUE THIS L
-*PUNCH HEADER,THEN 256 X SIZE. HI 4 BITS,
-*  THEN HEADWE 256X SIZE LO BITS.
-*  CONTINUE ALTERNATING AS ABOVE UNTIL LAST
-*  HFLG INITIALLY=SIZE,WHEN=0 PUNCH LEADER,W
+;*PUNCH HEADER,THEN 256 X SIZE. HI 4 BITS,
+;*  THEN HEADWE 256X SIZE LO BITS.
+;*  CONTINUE ALTERNATING AS ABOVE UNTIL LAST
+;*  HFLG INITIALLY=SIZE,WHEN=0 PUNCH LEADER,W
 PPUN     LIS       0
          LR        11,A      ; LOW DC ADDRESS
          LI        H'92'
@@ -872,15 +872,15 @@ PLP      LIS       0
          PI        TTYO      ; WRITE BLANK
          DS        XFLG
          BNZ       PLP       ; CONTINUE BLANKS
-*CHECK FOR DONE
+;*CHECK FOR DONE
          DS        HFLG
          BP        PPC
-*****DONE******
+;*****DONE******
          LI        H'94'
          LR        CHRS,A
 PLXX     PI        TTYO      ; PUNCH OFF
          JMP       BGSV
-*POR T DISPLAY
+;*POR T DISPLAY
 PIO      LI        H'E0'     ; SCRATCH MEMORY
          LR        QL,A
          LR        DC,Q      ; SCRATCH MEMORY
@@ -900,12 +900,12 @@ PXX      LIS       7
          LI        H'A3'
          ST
          LR        P0,Q      ; GO EXECUTE
-*SHORT INS
+;*SHORT INS
 INS      AI        H'A0'
          BR        (PXX-1)
-*OUTPUT 2 RUBOUTS,REGISTER CHRS HAS -1 AFTE
-*    RETURN FROM TTYO OF BLANKS
-* PUNCH BLOCK OF 256
+;*OUTPUT 2 RUBOUTS,REGISTER CHRS HAS -1 AFTE
+;*    RETURN FROM TTYO OF BLANKS
+;* PUNCH BLOCK OF 256
 PPC      LIS       0
          LR        XFLG,A
          LR        A,QL
@@ -922,13 +922,13 @@ PUNL     LR        A,HFLG
          PI        TTYO
          DS        XFLG
          BNZ       PUNL
-*CHECK FOR LENGTH GREATER THAN 256
+;*CHECK FOR LENGTH GREATER THAN 256
          DS        4         ; NO PAGES/BLOCK
          BP        PPC       ; NEXT 256
-*CHECK IF LOW BYTES ALREADY DONE
+;*CHECK IF LOW BYTES ALREADY DONE
          DS        HFLG
          BP        PPB       ; GO DO LOW BYTES
-*UPDATE TO NEXT PAGE
+;*UPDATE TO NEXT PAGE
 PONT     LR        A,SA
          INC
          AS        SIZE
@@ -936,7 +936,7 @@ PONT     LR        A,SA
          XS        EA        ; END PAGE
          BZ        PBLK      ; DO TRAILER
          BR        PPA       ; START NEXT HI B
-*8 BIT FORMAT
+;*8 BIT FORMAT
 EGHT     LM
          LR        CHRS,A
          PI        TTYO      ; OUTPUT BYTE
@@ -946,7 +946,7 @@ EGHT     LM
          BP        PPC       ; START NEXT BLOC
          LR        HFLG,A
          BR        PONT      ; NEXT PAGE
-*  START OF BOOT LOADER
+;*  START OF BOOT LOADER
 LOAD     LI        H'91'     ; READER ON COMMA
          LR        CHRS,A    ; PASS IT
          PI        TTYO      ; AND TYPE IT
@@ -975,7 +975,7 @@ IDLE     PI        CHAR      ; GET HEADER CHAR
          BZ        ENDX
          XI        C'X'      ; WELL, IF IT ISN
          BNZ       IDLE
-******   HAVE THE START OF A DATA LINE   ***
+;******   HAVE THE START OF A DATA LINE   ***
 DATA     LR        CKSM,A    ; INITIUALIZE CHK
          LIS       H'08'
          LR        CCNT,A    ; INITIALIZE BYTE
@@ -992,7 +992,7 @@ CONT     PI        BYTE
          XS        CKSM      ; MAKE THE COMPAR
          SL        4         ; LO 4 BITS TO HI
          BZ        IDLE      ; IF OK, LET'S GE
-**********     CHK SUM ERROR HALT   ********
+;**********     CHK SUM ERROR HALT   ********
 SLF2     LI        C'C'
          LR        CHRS,A
          PI        TTYO
@@ -1008,8 +1008,8 @@ SETA     PI        BYTE      ; GET NEW LOAD AD
          BR        IDLE
 ENDX     NS        XFLG      ; HAVE AN *, BUT
          BZ        IDLE      ; MUST BE ONLY AT
-*                            WAS 2A+0 OR 2A
-*********    HALT LOOP FOR WHEN FINISHED  **
+;*                            WAS 2A+0 OR 2A
+;*********    HALT LOOP FOR WHEN FINISHED  **
 STPP     LI        H'93'     ; READER OFF COMM
          LR        CHRS,A    ; PASS
 SLF3     JMP       PLXX
@@ -1048,7 +1048,7 @@ FMLP     PI        BYTE      ; DATA FETCH
          NS        CKSM      ; SHOULD BE ZERO
          BNZ       SLF2      ; CKSM ERROR
          JMP       IDLE      ; GET NEXT BLOCK
-*PORT CHANGE ROUTINE
+;*PORT CHANGE ROUTINE
 PORT     LI        H'DF'
          LR        QL,A
          LR        DC,Q
@@ -1082,8 +1082,8 @@ OUTS     AI        H'B0'
          AS        6
          BR        JMP
          NOP
-***GET A BYTE****
-***       GETS THE BYTE,CONVERTS,AND ADDS TO
+;***GET A BYTE****
+;***       GETS THE BYTE,CONVERTS,AND ADDS TO
 BYTE     LR        K,P       ; SAVE PC1
          LIS       2
          LR        HFLG,A    ; SET THE HALF FL
@@ -1114,16 +1114,16 @@ AEND     DS        HFLG      ; DECREMENT HALF
 ADON     LR        A,CHR1    ; ONLY HAVE UPPER
          LR        P,K       ; RESTORE PC1
          POP
-********     PARALLEL AND SERIAL INPUT ROUTI
-**      COMMON CALL IS A PUSH TO CHAR
-**      CHAR USES Q TO JUMP TO APPROPRIATE R
+;********     PARALLEL AND SERIAL INPUT ROUTI
+;**      COMMON CALL IS A PUSH TO CHAR
+;**      CHAR USES Q TO JUMP TO APPROPRIATE R
 CHAR     LR        P0,Q      ; JUMP TO INPUT R
-**   PINP:  GET A CHARACTER FROM PORT 4
-**    TYPICALLY USED WITH TAPE READER, BUT H
-**    DISCIPLINE THAT IS APPLICABLE TO OTHER
-**    LOOKS FOR A CHARACTER READY INPUT, AND
-**    CHARACTER. NEXT CPU GIVES AN ADVANCE P
-**    AFTER THE DEVICE READY INPUT GOES NOT
+;**   PINP:  GET A CHARACTER FROM PORT 4
+;**    TYPICALLY USED WITH TAPE READER, BUT H
+;**    DISCIPLINE THAT IS APPLICABLE TO OTHER
+;**    LOOKS FOR A CHARACTER READY INPUT, AND
+;**    CHARACTER. NEXT CPU GIVES AN ADVANCE P
+;**    AFTER THE DEVICE READY INPUT GOES NOT
 PINP     INS       PSTS      ; GET A CHAR FROM
          SL        1
          BM        PINP      ; LOOK FOR SPOCKE
@@ -1143,8 +1143,8 @@ NOSP     INS       PSTS      ; GET READER STAT
          OUTS      PSTS      ; REMOVE DRIVE PU
          LR        A,CHRS    ; PICK BACK UP TH
          POP
-***TTYI: SERIAL I/P           CHARACTER RETU
-**   REG BCNT HOLDS BIT COUNT   REG CHRS HOL
+;***TTYI: SERIAL I/P           CHARACTER RETU
+;**   REG BCNT HOLDS BIT COUNT   REG CHRS HOL
 TTYI     INS       IPOR
          BM        TTYI      ; LOOK FOR START
          LR        A,BAUD    ; GET DELAY COUNT
@@ -1171,11 +1171,11 @@ DLY4     OUTS      NUSE      ; NOP FOR DELAY
          INS       IPOR      ; GET NEW BIT
          BR        LOOP
 STOP     POP
-******* SERIAL OUTPUT ROUTINE  ***********
-**  HAS 1 START, 8 DATA, 2 STOP. USES PORT 0
-**  BAUD RATE IS SET BY A DELAY COUNT IN REG
-**   CALL BY PUTTING CHAR IN REG CHRS, AND S
-**   ROUTINE RETURNS WITH ALL 1'S IN REG CHR
+;******* SERIAL OUTPUT ROUTINE  ***********
+;**  HAS 1 START, 8 DATA, 2 STOP. USES PORT 0
+;**  BAUD RATE IS SET BY A DELAY COUNT IN REG
+;**   CALL BY PUTTING CHAR IN REG CHRS, AND S
+;**   ROUTINE RETURNS WITH ALL 1'S IN REG CHR
 TTCR     LR        K,P
          LIS       CR
          LR        CHRS,A
@@ -1193,7 +1193,7 @@ TTYO     LIS       H'0B'
          LR        BCNT,A    ; SET BIT COUNT F
          LIS       0
          OUTS      OPOR      ; OUTPUT START BI
-***   DELAY ROUTINE-- 3.3MS FOR 300 BAUD, 9
+;***   DELAY ROUTINE-- 3.3MS FOR 300 BAUD, 9
 DLY1     LR        A,BAUD    ; GET DELAY COUNT
 DLY2     OUTS      NUSE      ; NOP FOR DELAY
          OUTS      NUSE
@@ -1210,12 +1210,12 @@ DLY5     LIS       1         ; GET CHARACTER
          SR        1
          AI        H'80'     ; FILL,WITH 1'S F
          LR        CHRS,A
-*
+;*
 EDUX     BR        DLY1      ; NOW DELAY,THEN
-*
-*
-* EDUCATOR INITIALIZATION
-*
+;*
+;*
+;* EDUCATOR INITIALIZATION
+;*
 EDUC     LIS       0         ; CLEAR INTERRUPT PORTS
          LR        2,A       ; CLEAR STORE MODE FLAG
          LI        H'7F'
@@ -1226,7 +1226,7 @@ EDUC     LIS       0         ; CLEAR INTERRUPT PORTS
          LR        I,A
          LR        A,QU      ; SAVE QU FOR RETURN TO FAIR-
          LR        D,A
-* LOAD ZEROES INTO ADDRESS DISPLAY AND DC
+;* LOAD ZEROES INTO ADDRESS DISPLAY AND DC
 A9       LISU      6
          LISL      3
          LIS       0
@@ -1234,11 +1234,11 @@ A20      LR        D,A
          BR7       A20
          LIS       4
          LR        7,A
-* LOAD MEMORY TO DATA DISPLAY
+;* LOAD MEMORY TO DATA DISPLAY
          DCI       0
          LR        Q,DC
          PI        MTDD
-* SCAN KEYBOARD
+;* SCAN KEYBOARD
 A3       PI        SCAN
          LI        H'12'
          XS        0
@@ -1266,7 +1266,7 @@ A53      DS        6
          LIS       6
          LR        6,A       ; RELOAD DELAY TIME FOR REPEA
          BR        A5
-* DETERMINE WHICH KEY WAS DETECTED
+;* DETERMINE WHICH KEY WAS DETECTED
 A54      LR        H,DC
          LI        H'10'
          NS        0
@@ -1292,7 +1292,7 @@ FUNC     JMP       DA
          JMP       STM
          JMP       GO
          JMP       CLR
-* 'ENTER' KEY DETECTED
+;* 'ENTER' KEY DETECTED
 ENT      LIS       1
          NS        2
          BZ        LA        ; BRANCH IF NOT STORE MODE
@@ -1313,7 +1313,7 @@ A16      LR        7,A
          BR        A3
 LA       LIS       4         ; SET DIGIT COUNT TO 4
          BR        A16
-* 'GO' KEY DETECTED
+;* 'GO' KEY DETECTED
 GO       LI        H'FF'     ; DISPLAY OFF
          OUTS      1
          LI        H'C0'
@@ -1326,18 +1326,18 @@ GO       LI        H'FF'     ; DISPLAY OFF
          LR        A,S
          LR        QU,A      ; RESTORE QU FOR FAIR-BUG
          PK
-* 'INCREMENT ADDRESS' KEY DETECTED
+;* 'INCREMENT ADDRESS' KEY DETECTED
 IA       PI        INAD      ; INCREMENT ADDRESS DISPLAY
 A34      PI        MTDD      ; MEMORY TO DATA DISPLAY
          LIS       1
          NS        2
          BNZ       A23       ; BRANCH IF STORE MODE FLAG
          BR        LA
-* 'DECREMENT ADDESS' KEY DETECTED
+;* 'DECREMENT ADDESS' KEY DETECTED
 DA       PI        DEAD
          PI        ATDC
          BR        A34
-* 'STORE MODE' KEY DETECTED
+;* 'STORE MODE' KEY DETECTED
 STM      LIS       1
          NS        2
          BNZ       A26       ; BRANCH IF STORE MODE FLAG
@@ -1360,7 +1360,7 @@ A26      XS        2
 A18      PI        ATDC
          PI        MTDD
          BR        LA
-* 'CLEAR' KEY DETECTED
+;* 'CLEAR' KEY DETECTED
 CLR      LIS       1
          NS        2
          BNZ       A13       ; BRANCH IF STORE MODE FLAG
@@ -1374,7 +1374,7 @@ A13      LIS       2
          LI        H'FF'
          ADC                 ; DECREMENT DATA COUNTER
          BR        A25
-* CHECK IF FUNCTION FLAG SET BEFORE ACCEPTIN
+;* CHECK IF FUNCTION FLAG SET BEFORE ACCEPTIN
 A27      LR        A,0
          LR        3,A
          LIS       0
@@ -1389,7 +1389,7 @@ A27      LR        A,0
          LISL      3
 A30      LR        D,A
          BR7       A30
-* LOAD DIGIT TO ADDRESS DISPLAY
+;* LOAD DIGIT TO ADDRESS DISPLAY
 A28      LISL      1
          LR        A,D
          LR        I,A
@@ -1405,7 +1405,7 @@ A28      LISL      1
          PI        MTDD      ; MEMORY TO DATA DISPLAY
 A29      DS        7         ; DECREMENT DIGIT COUNT
 A24      JMP       A3
-* LOAD DIGIT TO DATA DISPLAY
+;* LOAD DIGIT TO DATA DISPLAY
 A33      LIS       2
          NS        7
          BZ        A35       ; BRANCH IF DIGIT COUNT NOT 2
@@ -1423,7 +1423,7 @@ A35      XS        7
          LR        S,A
          DS        7
          BR        A24
-* 'MOVE UP' KEY DETECTED
+;* 'MOVE UP' KEY DETECTED
 MOVU     LIS       1
          NS        2
          BZ        A24       ; BRANCH IF NOT IN STORE MODE
@@ -1447,7 +1447,7 @@ A12      LM
          LI        H'2B'
          ST
 A17      BR        A18
-* 'MOVE DOWN" KEY DETECTED
+;* 'MOVE DOWN" KEY DETECTED
 MOVD     LIS       1
          NS        2
          BZ        A24       ; BRANCH IF NOT IN STORE MODE
@@ -1463,9 +1463,9 @@ MOVD     LIS       1
          XS        11
          BNZ       MOVD
          BR        A17
-*
-* ADDRESS DISPLAY TO DC SUBROUTINE
-*
+;*
+;* ADDRESS DISPLAY TO DC SUBROUTINE
+;*
 ATDC     LISU      6
          LISL      3
 A15      LR        A,D
@@ -1481,9 +1481,9 @@ A15      LR        A,D
 A36      LR        QL,A
          LR        KL,A
          BR        A15
-*
-* MEMORY TO DATA DISPLAY SUBROUTINE
-*
+;*
+;* MEMORY TO DATA DISPLAY SUBROUTINE
+;*
 MTDD     LISL      4
          LM
          LR        4,A
@@ -1493,9 +1493,9 @@ MTDD     LISL      4
          NS        4
          LR        S,A
          POP
-*
-* INCREMENT ADDRESS DISPLAY SUBROUTINE
-*
+;*
+;* INCREMENT ADDRESS DISPLAY SUBROUTINE
+;*
 INAD     LISL      3
 A21      LR        A,S
          INC
@@ -1505,9 +1505,9 @@ A21      LR        A,S
          BNZ       A22       ; BRANCH IF DIGIT WAS NOT 'F'
          BR7       A21       ; BRANCH IF NOT MSD
 A22      POP
-*
-* DECREMENT ADDRESS DISPLAY SUBROUTINE
-*
+;*
+;* DECREMENT ADDRESS DISPLAY SUBROUTINE
+;*
 DEAD     LISL      3
 A31      DS        S
          LR        A,S
@@ -1516,28 +1516,28 @@ A31      DS        S
          LR        D,A       ; 15 TO DISPLAY REG.
          BR7       A31       ; BRANCH IF NOT MSD
 A32      POP
-*
-* SCAN KEYBOARD SUBROUTINE
-*
+;*
+;* SCAN KEYBOARD SUBROUTINE
+;*
 SCAN     LR        K,P
          LR        A,IS
          LISU      5
          LISL      7
          LR        D,A
-* LOAD KEY CODE
+;* LOAD KEY CODE
 A39      LI        H'17'
          LR        0,A
-* LOAD FIRST STROBE
+;* LOAD FIRST STROBE
          LI        H'FE'
          LR        S,A
-* OUTPUT STROBE
+;* OUTPUT STROBE
 A40      LIS       15        ; BLANK DISPLAY
          OUTS      1
          LI        H'C0'
          OUTS      0
          LR        A,D
          OUTS      0
-* READ KEYS
+;* READ KEYS
          LIS       4
          LR        S,A
          INS       1
@@ -1545,60 +1545,60 @@ A40      LIS       15        ; BLANK DISPLAY
          BZ        A43       ; BRANCH IF NO KEY IN THIS CO
          SL        4
 A41      BM        A42       ; BRANCH IF KEY IS IN THIS RO
-* GO TO NEXT ROW IF NOT LAST ROW
+;* GO TO NEXT ROW IF NOT LAST ROW
          DS        0
          DS        S
          BZ        A47       ; BRANCH IF LAST ROW IN THIS
          SL        1
          BR        A41
-* IS THIS FIRST SCAN
+;* IS THIS FIRST SCAN
 A42      LISL      4
          LIS       1
          XS        S
          BNZ       A48       ; BRANCH IF KBD FLAG NOT SET
-* RESET KBD FLAG
+;* RESET KBD FLAG
          LR        D,A
-* COMPARE TWO SCANS
+;* COMPARE TWO SCANS
          LR        A,S
          XS        0
          BZ        A46       ; BRANCH IF SCANS ARE THE SAM
          BR        A45
-* CHANGE KEY CODE FOR NEXT COLUMN
+;* CHANGE KEY CODE FOR NEXT COLUMN
 A43      LISL      6
          LI        H'FC'
          AS        0
          LR        0,A
-* SHIFT STROBVE ONE POSITION
+;* SHIFT STROBVE ONE POSITION
 A44      LR        A,S
          SL        1
          XI        1
          LR        S,A
-* HAS LAST COLUMN BEEN SCANNED ALREADY
+;* HAS LAST COLUMN BEEN SCANNED ALREADY
          NI        H'40'
          BNZ       A40       ; BRANCH IF NOT LAST STROBE
-* STROBE 'FF' IN KEY CODE REGISTER
+;* STROBE 'FF' IN KEY CODE REGISTER
 A45      LI        H'FF'
          LR        0,A
-* RESET KBD FLAG
+;* RESET KBD FLAG
          LISL      4
          LIS       0
          LR        S,A
          BR        A51
-* RESTORE ISAR
+;* RESTORE ISAR
 A46      LISL      7
          LR        A,S
          LR        IS,A
          LR        P,K
          POP
-* GO TO NEXT ROW
+;* GO TO NEXT ROW
 A47      LISL      6
          BR        A44
-* SET KBD FLAG
+;* SET KBD FLAG
 A48      LR        D,A
-* STORE KEY CODE OF FIRST SCAN
+;* STORE KEY CODE OF FIRST SCAN
          LR        A,0
          LR        D,A
-* LOAD COUNTERS FOR BOUNCE TIME OF 28MS
+;* LOAD COUNTERS FOR BOUNCE TIME OF 28MS
 A51      PI        DISP      ; RESTORE DISPLAY
          LISU      5
          LISL      2
@@ -1617,9 +1617,9 @@ A50      DS        S
          BZ        A46       ; BRANCH IF NOT KBD FLG
          LISL      6
          BR        A39
-*
-* DISPLAY SUBROUTINE
-*
+;*
+;* DISPLAY SUBROUTINE
+;*
 DISP     LISU      6
          LISL      7
          LR        A,1
@@ -1655,11 +1655,11 @@ A52      LR        A,1
          LR        A,S
          LR        1,A       ; RESTORE REG. 1
          POP
-*
-* SONG SUBROUTINE
-*     LOAD STARTING LOCATION OF SONG CONSTAN
-*     LOAD TEMPO INTO R7
-*
+;*
+;* SONG SUBROUTINE
+;*     LOAD STARTING LOCATION OF SONG CONSTAN
+;*     LOAD TEMPO INTO R7
+;*
 SONG     LI        H'40'
          LR        6,A       ; SET NOTE FLAG
          LR        A,7
