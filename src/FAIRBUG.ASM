@@ -914,7 +914,7 @@ PPC      LIS       0
 PUNL     LR        A,HFLG
          NS        HFLG
          LM
-         BNZ       *+3
+         BNZ       $+3
          SL        4         ; TO HI 4 BITS
          SR        4         ; TO LO 4 BITS
          XI        H'4F'
@@ -987,7 +987,7 @@ CONT     PI        BYTE
          PI        CHAR      ; GET CHK CHAR FR
          NI        H'3F'     ; MASK TO SIX BIT
          AI        H'D0'     ; ASCII CONVERT--
-         BC        *+4       ; CARRY IF IT WAS
+         BC        $+4       ; CARRY IF IT WAS
          AI        H'39'     ; FINISH CONVERSI
          XS        CKSM      ; MAKE THE COMPAR
          SL        4         ; LO 4 BITS TO HI
@@ -1093,7 +1093,7 @@ AGAN     LR        A,CHR1
          PI        CHAR
          NI        H'3F'     ; MASK TO 6 BITS
          AI        H'D0'     ; ASCII CONVERT--
-         BC        *+4
+         BC        $+4
          AI        H'39'     ; NEXT CLEAN UP A
          AS        CHR1
          LR        CHR1,A    ; TEMP STORE
@@ -1148,7 +1148,7 @@ NOSP     INS       PSTS      ; GET READER STAT
 TTYI     INS       IPOR
          BM        TTYI      ; LOOK FOR START
          LR        A,BAUD    ; GET DELAY COUNT
-DLY3     BR        *+2       ; SILLY BRANCH FO
+DLY3     BR        $+2       ; SILLY BRANCH FO
          AI        H'01'
          BNZ       DLY3      ; THIS LOOP OS HA
          INS       IPOR      ; CHECK START BIT
