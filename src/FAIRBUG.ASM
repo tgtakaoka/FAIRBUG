@@ -314,11 +314,11 @@ FB       PI        TTYI      ; GET CHAR
          BZ        CORE      ; CORRECT FIELD B
          PI        TTYO      ; ECHO INPUT CHAR
          LR        A,7
-         CI        C'-'      ; FIELD SEPARATOR
+         CI        '-'       ; FIELD SEPARATOR
          BZ        CORN
-         CI        C'+'
+         CI        '+'
          BZ        CORN
-         CI        C'='
+         CI        '='
          BZ        CORT
          CI        H'5B'     ; KILL CHAR?
          BZ        STR1      ; KILL INPUT
@@ -388,7 +388,7 @@ COR5     DS       FCNT
 COR6     LR       A,7
          CI       CR
          BZ       COR8
-         CI       C'='
+         CI       '='
          BNZ      FA         ; LAST CHAR NOT C
 COR8     LR       A,FCNT
          COM
@@ -425,7 +425,7 @@ HXX      DB     AL1(X-A)     ; HEX ARITHMETIC
 STRT     LR        A,11      ; FREE R11
          LR        QL,A
 STR1     PI        TTCR      ; WRITE CR/LF
-         LI        C'?'      ; PROMPT CHARACTE
+         LI        '?'       ; PROMPT CHARACTE
          LR        CHRS,A
          PI        TTYO
 ;*READ INPUT CHARACTER
@@ -436,7 +436,7 @@ READ     PI        TTYI
          NI        H'7F'     ; 7 BITS ONLY
          CI        H'40'
          BP        STR1      ; LESS THAN 'A' I
-         CI        C'X'
+         CI        'X'
          BM        STR1      ; GREATER THAN 'W
          NI        H'1F'     ; SAVE 5 BITS ONL
          DCI       (TBLS-1)
@@ -607,7 +607,7 @@ TT       LI        H'E0'
          BR        BXX       ; TO START
 ;*HEX ARITHMETIC
 HEX      LR        A,9
-         CI        C'+'
+         CI        '+'
          BZ        PLUS
 ;*COMPLIMENT BEFORE ADD=SUBTRACT
          LR        A,6
@@ -790,7 +790,7 @@ R22      LI        H'20'     ; BLANK
          LR        A,4
          LR        QL,A
          PI        FOP2
-R23      LI        C'='
+R23      LI        '='
          LR        CHRS,A
          PI        TTYO
 ;*NOW PRINT DATA
@@ -969,11 +969,11 @@ IDLE     PI        CHAR      ; GET HEADER CHAR
          SR        1
          CI        H'3A'     ; COLON
          BZ        FORM      ; FORMULATOR FORM
-         CI        C'S'      ; IS IT AN LOAD A
+         CI        'S'       ; IS IT AN LOAD A
          BZ        SETA
-         CI        C'*'      ; IS IT THE END O
+         CI        '*'       ; IS IT THE END O
          BZ        ENDX
-         XI        C'X'      ; WELL, IF IT ISN
+         XI        'X'       ; WELL, IF IT ISN
          BNZ       IDLE
 ;******   HAVE THE START OF A DATA LINE   ***
 DATA     LR        CKSM,A    ; INITIUALIZE CHK
@@ -993,10 +993,10 @@ CONT     PI        BYTE
          SL        4         ; LO 4 BITS TO HI
          BZ        IDLE      ; IF OK, LET'S GE
 ;**********     CHK SUM ERROR HALT   ********
-SLF2     LI        C'C'
+SLF2     LI        'C'
          LR        CHRS,A
          PI        TTYO
-         LI        C'K'
+         LI        'K'
          LR        CHRS,A
          PI        TTYO
          BR        STPP
